@@ -3,4 +3,17 @@ version: 1
 author: Ronny Antoon
 
 steps:
+  - wait-serial: 'wokwi press'
+  # Press once
+  - set-control:
+      part-id: btn1
+      control: pressed
+      value: 1
+  - wait-serial: 'wokwi release'
+  - set-control:
+      part-id: btn1
+      control: pressed
+      value: 0
+
+  - wait-serial: 'wokwi release'
   - wait-serial: '-----------------------------------Finished all tests!-----------------------------------'

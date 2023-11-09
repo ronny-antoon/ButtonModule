@@ -28,11 +28,17 @@ TEST(ButtonModuleTest, OnSinglePress)
                                { mockCallback.myCallback(); },
                                nullptr);
 
-    // Simulate a single press event (modify this based on your actual logic)
+#ifdef WOKWI_ENVIRONMENT
+    Serial.println("wokwi press");
+    delay(300);
+    Serial.println("wokwi release");
+    delay(300);
+#else
     digitalWrite(5, HIGH);
     delay(200);
     digitalWrite(5, LOW);
     delay(100);
+#endif // WOKWI_ENVIRONMENT
 }
 
 #endif // ON_SINGLE_PRESS_TEST_HPP
