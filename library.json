@@ -1,0 +1,31 @@
+{
+    "name": "ButtonModule",
+    "version": "1.0.0",
+    "description": "The \"ButtonModule\" Library is a C++ library that provides an interface and implementation for managing button modules, detecting button status changes, and invoking callback functions for single press, double press, and long press events.",
+    "keywords": "Button Module, Button Press, Button Library, Arduino Library, ESP32 Button, ESP8266 Button, MetaHouse",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ronny-antoon/ButtonModule.git"
+    },
+    "authors": [
+        {
+            "name": "Ronny Antoon",
+            "email": "ronnyantoon@gmail.com",
+            "url": "https://github.com/ronny-antoon"
+        }
+    ],
+    "license": "MIT",
+    "homepage": "https://github.com/ronny-antoon/ButtonModule",
+    "frameworks": "arduino",
+    "platforms": "espressif32",
+    "dependencies": [
+        {
+            "owner": "ronny-antoon",
+            "name": "MultiPrinterLogger",
+            "version": "3.1.1"
+        }
+    ],
+    "examples": [
+        "examples/*/*.ino"
+    ]
+}

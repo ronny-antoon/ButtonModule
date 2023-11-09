@@ -1,0 +1,117 @@
+#ifndef BUTTON_MODULE_HPP
+#define BUTTON_MODULE_HPP
+
+/**
+ * @file ButtonModule.hpp
+ * @brief Defines the ButtonModule class
+ * @details Header file declaring the implementation of the ButtonModule class
+ * @version 1.0.0
+ * @date 2023/11/08
+ * @author Ronny Antoon
+ * @copyright MetaHouse LTD.
+ */
+
+#include <stdint.h>            // uint8_t
+#include <freertos/FreeRTOS.h> // TaskHandle_t
+#include <freertos/task.h>     // TaskHandle_t
+
+#include "ButtonModuleInterface.hpp"
+
+/**
+ * @brief Implementation of the ButtonModule class.
+ *
+ * @details The ButtonModule class is responsible for managing the button module,
+ * detecting button status changes, and invoking callback functions for single press,
+ * double press, and long press events.
+ */
+class ButtonModule : public ButtonModuleInterface
+{
+private:
+    uint8_t _pin;    // Pin of the button module
+    bool _onRaising; // Flag indicating whether the button module triggers on raising or falling edge
+
+    void (*_singlePressCallback)(void *); // Callback function for single press
+    void *_singlePressCallbackParameter;  // Parameter for the callback function for single press
+
+    void (*_doublePressCallback)(void *); // Callback function for double press
+    void *_doublePressCallbackParameter;  // Parameter for the callback function for double press
+
+    void (*_longPressCallback)(void *); // Callback function for long press
+    void *_longPressCallbackParameter;  // Parameter for the callback function for long press
+
+    uint8_t _checkInterval;                 // Check interval for button trigger
+    uint8_t _debounceTime;                  // Debounce time for button trigger
+    uint16_t _longPressTime;                // Long press time for button trigger
+    uint16_t _timeBetweenDoublePress;       // Time between double press for button trigger
+    TaskHandle_t *buttonTriggerTask_handle; // Task handle for the button trigger task
+
+    /**
+     * @brief Button trigger task.
+     *
+     * @details This task detects button triggers and invokes the appropriate callback functions.
+     */
+    void buttonTriggerTask();
+
+public:
+    /**
+     * @brief Constructor for ButtonModule.
+     *
+     * @param pin The pin of the button module.
+     * @param onRaising Flag indicating whether the button module triggers on raising or falling edge.
+     */
+    ButtonModule(uint8_t pin, bool onRaising = true);
+
+    /**
+     * @brief Destructor for ButtonModule.
+     */
+    ~ButtonModule() override;
+
+    /**
+     * @brief Checks if the button is currently pressed.
+     *
+     * @return true if the button is pressed, false otherwise.
+     */
+    bool isPressed() override;
+
+    /**
+     * @brief Sets the callback function for a single press event.
+     *
+     * @param callback The callback function, taking a void pointer as a parameter.
+     * @param _pParameter The void pointer parameter for the callback function.
+     */
+    void onSinglePress(void (*callback)(void *), void *_pParameter) override;
+
+    /**
+     * @brief Sets the callback function for a double press event.
+     *
+     * @param callback The callback function, taking a void pointer as a parameter.
+     * @param _pParameter The void pointer parameter for the callback function.
+     */
+    void onDoublePress(void (*callback)(void *), void *_pParameter) override;
+
+    /**
+     * @brief Sets the callback function for a long press event.
+     *
+     * @param callback The callback function, taking a void pointer as a parameter.
+     * @param _pParameter The void pointer parameter for the callback function.
+     */
+    void onLongPress(void (*callback)(void *), void *_pParameter) override;
+
+    /**
+     * @brief Starts listening for button triggers.
+     *
+     * @param usStackDepth Stack depth for the task.
+     * @param checkInterval The check interval for button triggers.
+     * @param debounceTime The debounce time for button triggers.
+     * @param longPressTime The long press time for button triggers.
+     * @param timeBetweenDoublePress The time between double presses for button triggers.
+     */
+    void startListening(uint32_t usStackDepth = 10000, uint8_t checkInterval = 30, uint8_t debounceTime = 90, uint16_t longPressTime = 1000, uint16_t timeBetweenDoublePress = 500) override;
+
+    /**
+     * @brief Stops listening for button triggers.
+     */
+    void stopListening() override;
+};
+
+#endif // BUTTON_MODULE_HPP
