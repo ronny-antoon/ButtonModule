@@ -3,12 +3,42 @@ version: 1
 author: Ronny Antoon
 
 steps:
-  - wait-serial: 'wokwi press'
+    - wait-serial: 'wokwi press IsPressed'
   - set-control:
       part-id: btn1
       control: pressed
       value: 1
-  - wait-serial: 'wokwi release'
+    - wait-serial: 'wokwi release IsPressed'
+  - set-control:
+      part-id: btn1
+      control: pressed
+      value: 0
+    - wait-serial: 'wokwi press OnSinglePress'
+  - set-control:
+      part-id: btn1
+      control: pressed
+      value: 1
+    - wait-serial: 'wokwi release OnSinglePress'
+  - set-control:
+      part-id: btn1
+      control: pressed
+      value: 0
+    - wait-serial: 'wokwi press OnDoublePress'
+  - set-control:
+      part-id: btn1
+      control: pressed
+      value: 1
+    - wait-serial: 'wokwi release OnDoublePress'
+  - set-control:
+      part-id: btn1
+      control: pressed
+      value: 0
+    - wait-serial: 'wokwi press OnLongPress'
+  - set-control:
+      part-id: btn1
+      control: pressed
+      value: 1
+    - wait-serial: 'wokwi release OnLongPress'
   - set-control:
       part-id: btn1
       control: pressed

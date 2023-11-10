@@ -8,21 +8,25 @@
 
 TEST(ButtonModuleTest, IsPressed)
 {
-    // Create a ButtonModule instance for testing
     ButtonModule buttonModule(5);
 
-    // Assuming the button is not pressed initially
     EXPECT_FALSE(buttonModule.isPressed());
 
-    // Simulate a pressed state (modify this based on your actual logic)
+#ifdef WOKWI_ENVIRONMENT
+    Serial.println("wokwi press IsPressed");
+#else
     pinMode(5, OUTPUT);
     digitalWrite(5, HIGH);
+#endif // WOKWI_ENVIRONMENT
+    delay(300);
 
-    // Assuming the button is pressed now
     EXPECT_TRUE(buttonModule.isPressed());
 
-    // Reset the pin state (modify this based on your actual logic)
+#ifdef WOKWI_ENVIRONMENT
+    Serial.println("wokwi release IsPressed");
+#else
     digitalWrite(5, LOW);
+#endif // WOKWI_ENVIRONMENT
 }
 
 #endif // IS_PRESSED_TEST_HPP
