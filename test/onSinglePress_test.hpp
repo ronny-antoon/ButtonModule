@@ -13,20 +13,19 @@ public:
     MOCK_METHOD0(myCallback, void());
 };
 // Create a mock callback
-MockCallback mockCallback;
 
 TEST(ButtonModuleTest, OnSinglePress)
 {
+    MockCallback mockCallback;
     // Create a ButtonModule instance for testing
     ButtonModule buttonModule(5);
-    pinMode(5, OUTPUT);
 
     EXPECT_CALL(mockCallback, myCallback()).Times(1);
 
     // Set the single press callback to the mock callback
     buttonModule.onSinglePress([](void *parameter)
-                               { mockCallback.myCallback(); },
-                               nullptr);
+                               { ((MockCallback *)parameter)->myCallback(); },
+                               &mockCallback);
 
 #ifdef WOKWI_ENVIRONMENT
     Serial.println("wokwi press");
@@ -34,6 +33,7 @@ TEST(ButtonModuleTest, OnSinglePress)
     Serial.println("wokwi release");
     delay(300);
 #else
+    pinMode(5, OUTPUT);
     digitalWrite(5, HIGH);
     delay(200);
     digitalWrite(5, LOW);
