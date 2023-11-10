@@ -11,6 +11,8 @@
  * @copyright MetaHouse LTD.
  */
 
+#include <stdint.h> // uint8_t, uint16_t, uint32_t
+
 /**
  * @brief Interface for button modules.
  *
