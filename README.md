@@ -1,6 +1,6 @@
 # ButtonModule Library
 
-
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=BACPRJTAU4G4E)
 [![Latest](https://img.shields.io/github/v/tag/ronny-antoon/ButtonModule?color=red&label=last+release)](https://github.com/ronny-antoon/ButtonModule/releases)
 [![Latest](https://badges.registry.platformio.org/packages/ronny-antoon/library/ButtonModule.svg)](https://registry.platformio.org/libraries/ronny-antoon/ButtonModule)
 [![UnitTests](https://github.com/ronny-antoon/ButtonModule/actions/workflows/build-and-test-embeded.yaml/badge.svg)](https://github.com/ronny-antoon/ButtonModule/actions/workflows/build-and-test-embeded.yaml)
