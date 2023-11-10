@@ -5,7 +5,7 @@
  * @file ButtonModule.hpp
  * @brief Defines the ButtonModule class
  * @details Header file declaring the implementation of the ButtonModule class
- * @version 1.0.0
+ * @version 1.0.1
  * @date 2023/11/08
  * @author Ronny Antoon
  * @copyright MetaHouse LTD.

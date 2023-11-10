@@ -5,7 +5,7 @@
  * @file ButtonModuleInterface.hpp
  * @brief Defines the ButtonModuleInterface class
  * @details Header file declaring the abstract interface for button modules
- * @version 1.0.0
+ * @version 1.0.1
  * @date 2023/11/08
  * @author Ronny Antoon
  * @copyright MetaHouse LTD.

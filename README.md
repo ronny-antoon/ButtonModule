@@ -36,7 +36,7 @@ To use the **ButtonModule** library in your PlatformIO project, follow these ste
 1. Open "platformio.ini", a project configuration file located in the root of PlatformIO project.
 
 2. Add the following line to the `lib_deps` option of `[env:]` section:
-`ronny-antoon/ButtonModule@^1.0.0`
+`ronny-antoon/ButtonModule@^1.0.1`
 
 3. Build a project, PlatformIO will automatically install dependencies.
 
