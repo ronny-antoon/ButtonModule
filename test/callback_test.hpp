@@ -41,15 +41,15 @@ TEST_F(callback_test, OnSinglePress)
 
 #ifdef WOKWI_ENVIRONMENT
     Serial.println("wokwi press OnSinglePress");
-    delay(300);
+    delay(150);
     Serial.println("wokwi release OnSinglePress");
-    delay(300);
+    delay(150);
 #else
     pinMode(5, OUTPUT);
     digitalWrite(5, HIGH);
-    delay(200);
+    delay(150);
     digitalWrite(5, LOW);
-    delay(100);
+    delay(150);
 #endif // WOKWI_ENVIRONMENT
 }
 
@@ -64,15 +64,23 @@ TEST_F(callback_test, OnDoublePress)
 
 #ifdef WOKWI_ENVIRONMENT
     Serial.println("wokwi press OnDoublePress");
-    delay(300);
+    delay(150);
     Serial.println("wokwi release OnDoublePress");
-    delay(300);
+    delay(150);
+    Serial.println("wokwi press OnDoublePress");
+    delay(150);
+    Serial.println("wokwi release OnDoublePress");
+    delay(150);
 #else
     pinMode(5, OUTPUT);
     digitalWrite(5, HIGH);
-    delay(200);
+    delay(150);
     digitalWrite(5, LOW);
-    delay(100);
+    delay(150);
+    digitalWrite(5, HIGH);
+    delay(150);
+    digitalWrite(5, LOW);
+    delay(150);
 #endif // WOKWI_ENVIRONMENT
 }
 
@@ -87,15 +95,15 @@ TEST_F(callback_test, OnLongPress)
 
 #ifdef WOKWI_ENVIRONMENT
     Serial.println("wokwi press OnLongPress");
-    delay(300);
+    delay(1500);
     Serial.println("wokwi release OnLongPress");
-    delay(300);
+    delay(1500);
 #else
     pinMode(5, OUTPUT);
     digitalWrite(5, HIGH);
-    delay(200);
+    delay(1500);
     digitalWrite(5, LOW);
-    delay(100);
+    delay(1500);
 #endif // WOKWI_ENVIRONMENT
 }
 

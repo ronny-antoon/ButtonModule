@@ -33,6 +33,16 @@ steps:
       part-id: btn1
       control: pressed
       value: 0
+      - wait-serial: 'wokwi press OnDoublePress'
+  - set-control:
+      part-id: btn1
+      control: pressed
+      value: 1
+    - wait-serial: 'wokwi release OnDoublePress'
+  - set-control:
+      part-id: btn1
+      control: pressed
+      value: 0
     - wait-serial: 'wokwi press OnLongPress'
   - set-control:
       part-id: btn1
