@@ -167,8 +167,6 @@ void ButtonModule::startListening(uint32_t usStackDepth, uint8_t checkInterval, 
     // Stop any existing listening task
     stopListening();
 
-    // Create a new task for button trigger detection
-    buttonTriggerTask_handle = new TaskHandle_t();
     xTaskCreate(
         [](void *thisPointer)
         { ((ButtonModule *)thisPointer)->buttonTriggerTask(); },
@@ -176,15 +174,13 @@ void ButtonModule::startListening(uint32_t usStackDepth, uint8_t checkInterval, 
         usStackDepth,
         this,
         1,
-        buttonTriggerTask_handle);
+        &buttonTriggerTask_handle);
 }
 
 void ButtonModule::stopListening()
 {
     // Stop the listening task and clean up resources
     if (buttonTriggerTask_handle != NULL)
-        vTaskDelete(*buttonTriggerTask_handle);
-
-    delete buttonTriggerTask_handle;
+        vTaskDelete(buttonTriggerTask_handle);
     buttonTriggerTask_handle = NULL;
 }

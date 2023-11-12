@@ -37,11 +37,11 @@ private:
     void (*_longPressCallback)(void *); // Callback function for long press
     void *_longPressCallbackParameter;  // Parameter for the callback function for long press
 
-    uint8_t _checkInterval;                 // Check interval for button trigger
-    uint8_t _debounceTime;                  // Debounce time for button trigger
-    uint16_t _longPressTime;                // Long press time for button trigger
-    uint16_t _timeBetweenDoublePress;       // Time between double press for button trigger
-    TaskHandle_t *buttonTriggerTask_handle; // Task handle for the button trigger task
+    uint8_t _checkInterval;                // Check interval for button trigger
+    uint8_t _debounceTime;                 // Debounce time for button trigger
+    uint16_t _longPressTime;               // Long press time for button trigger
+    uint16_t _timeBetweenDoublePress;      // Time between double press for button trigger
+    TaskHandle_t buttonTriggerTask_handle; // Task handle for the button trigger task
 
     /**
      * @brief Button trigger task.
