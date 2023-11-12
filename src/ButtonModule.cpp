@@ -18,13 +18,11 @@ void ButtonModule::buttonTriggerTask()
     bool doublePressOption = _doublePressCallback == NULL ? false : true; // Flag indicating if double press is configured
 
     while (true)
-    {
+    { // @note This task is not meant to be stopped, so it runs in an infinite loop, and should delay at the end of each iteration to allow other tasks to run, so never use continue.
         // Check if the trigger event fired; if so, wait until the button is released
         if (triggerFired)
         {
-            if (isPressed())
-                continue;
-            else
+            if (!isPressed())
             {
                 // Reset variables after button release
                 Serial.println(uxTaskGetStackHighWaterMark(NULL)); // TODO: remove
@@ -33,74 +31,72 @@ void ButtonModule::buttonTriggerTask()
                 lastPressTime = 0;
                 lastReleaseTime = 0;
                 countPress = 0;
-                continue;
-            }
-        }
-
-        if (isPressed())
-        {
-            // Check if the button is pressed for the first time
-            if (!wasPressed)
-            {
-                lastPressTime = millis();
-                lastReleaseTime = 0;
-                wasPressed = true;
-                continue;
-            }
-            else
-            {
-                // Check if the button is pressed for a long press and it's not a double press
-                if (_longPressCallback && countPress == 0 && millis() - lastPressTime >= _longPressTime)
-                {
-                    _longPressCallback(_longPressCallbackParameter);
-                    triggerFired = true;
-                    continue;
-                }
             }
         }
         else
         {
-            // Check if the button is released
-            if (wasPressed)
+            if (isPressed())
             {
-                lastReleaseTime = millis();
-                countPress++;
-                wasPressed = false;
-            }
-
-            if (countPress > 0)
-            {
-                // Check if the button is released within the debounce time
-                if (lastPressTime - lastReleaseTime <= _debounceTime)
+                // Check if the button is pressed for the first time
+                if (!wasPressed)
                 {
-                    // Ignore short button release (debounce)
-                    wasPressed = false;
-                    lastPressTime = 0;
+                    lastPressTime = millis();
                     lastReleaseTime = 0;
-                    continue;
-                }
-
-                // Check if the button is released after the time between double presses
-                if (_singlePressCallback && (!_doublePressCallback || millis() - lastReleaseTime > _timeBetweenDoublePress))
-                {
-                    // Invoke single press callback
-                    _singlePressCallback(_singlePressCallbackParameter);
-                    triggerFired = true;
-                    continue;
+                    wasPressed = true;
                 }
                 else
                 {
-                    if (_doublePressCallback && countPress >= 2)
+                    // Check if the button is pressed for a long press and it's not a double press
+                    if (_longPressCallback && countPress == 0 && millis() - lastPressTime >= _longPressTime)
                     {
-                        // Invoke double press callback
-                        _doublePressCallback(_doublePressCallbackParameter);
+                        _longPressCallback(_longPressCallbackParameter);
                         triggerFired = true;
-                        continue;
+                    }
+                }
+            }
+            else
+            {
+                // Check if the button is released
+                if (wasPressed)
+                {
+                    lastReleaseTime = millis();
+                    countPress++;
+                    wasPressed = false;
+                }
+
+                if (countPress > 0)
+                {
+                    // Check if the button is released within the debounce time
+                    if (lastPressTime - lastReleaseTime <= _debounceTime)
+                    {
+                        // Ignore short button release (debounce)
+                        wasPressed = false;
+                        lastPressTime = 0;
+                        lastReleaseTime = 0;
+                        countPress--;
+                    }
+                    else
+                    {
+                        // Check if the button is released after the time between double presses
+                        if (_singlePressCallback && (!_doublePressCallback || millis() - lastReleaseTime > _timeBetweenDoublePress))
+                        {
+                            // Invoke single press callback
+                            _singlePressCallback(_singlePressCallbackParameter);
+                            triggerFired = true;
+                        }
+                        else
+                        {
+                            if (_doublePressCallback && countPress >= 2)
+                            {
+                                // Invoke double press callback
+                                _doublePressCallback(_doublePressCallbackParameter);
+                                triggerFired = true;
+                            }
+                        }
                     }
                 }
             }
         }
-
         // Wait for the next iteration
         delay(_checkInterval);
     }
