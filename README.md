@@ -11,6 +11,7 @@ The ButtonModule Library is a C++ library providing an abstract interface and im
 - [Introduction](#introduction)
 - [Features](#features)
 - [Installation](#installation)
+- [Dependencies](#dependencies)
 - [Usage](#usage)
 - [API](#API)
 - [Example](#example)
@@ -36,7 +37,7 @@ To use the **ButtonModule** library in your PlatformIO project, follow these ste
 1. Open "platformio.ini", a project configuration file located in the root of PlatformIO project.
 
 2. Add the following line to the `lib_deps` option of `[env:]` section:
-`ronny-antoon/ButtonModule@^2.0.0`
+`ronny-antoon/ButtonModule@^4.1.0`
 
 3. Build a project, PlatformIO will automatically install dependencies.
 
@@ -48,6 +49,10 @@ To use the **ButtonModule** library in your Arduino project, follow these steps:
 2. In the Arduino IDE, click "Sketch" -> "Include Library" -> "Add .ZIP Library" and select the downloaded `.zip` file.
 
 3. Make sure to link your project with the necessary ESP-IDF libraries for NVS support.
+
+## Dependencies
+
+- [MultiPrinterLogger](https://github.com/ronny-antoon/MultiPrinterLogger#readme)
 
 ## Usage
 
