@@ -8,10 +8,12 @@
  * @author Ronny Antoon
  * @copyright MetaHouse LTD.
  */
+#include <freertos/FreeRTOS.h>                // TaskHandle_t
+#include <freertos/task.h>                    // TaskHandle_t
+#define INCLUDE_uxTaskGetStackHighWaterMark 1 // TaskHandle_t
+#define INCLUDE_vTaskDelete 1                 // vTaskDelete
 
-#include <stdint.h>            // uint8_t
-#include <freertos/FreeRTOS.h> // TaskHandle_t
-#include <freertos/task.h>     // TaskHandle_t
+#include <MultiPrinterLoggerInterface.hpp>
 
 #include "ButtonModuleInterface.hpp"
 
@@ -25,6 +27,8 @@
 class ButtonModule : public ButtonModuleInterface
 {
 private:
+    MultiPrinterLoggerInterface *_logger; // Logger for logging
+
     uint8_t _pin;    // Pin of the button module
     bool _onRaising; // Flag indicating whether the button module triggers on raising or falling edge
 
@@ -37,11 +41,11 @@ private:
     void (*_longPressCallback)(void *); // Callback function for long press
     void *_longPressCallbackParameter;  // Parameter for the callback function for long press
 
-    uint8_t _checkInterval;                // Check interval for button trigger
-    uint8_t _debounceTime;                 // Debounce time for button trigger
-    uint16_t _longPressTime;               // Long press time for button trigger
-    uint16_t _timeBetweenDoublePress;      // Time between double press for button trigger
-    TaskHandle_t buttonTriggerTask_handle; // Task handle for the button trigger task
+    uint8_t _checkInterval;                          // Check interval for button trigger
+    uint8_t _debounceTime;                           // Debounce time for button trigger
+    uint16_t _longPressTime;                         // Long press time for button trigger
+    uint16_t _timeBetweenDoublePress;                // Time between double press for button trigger
+    TaskHandle_t _buttonTriggerTaskHandle = nullptr; // Task handle for the button trigger task
 
     /**
      * @brief Button trigger task.
@@ -57,7 +61,7 @@ public:
      * @param pin The pin of the button module.
      * @param onRaising Flag indicating whether the button module triggers on raising or falling edge.
      */
-    ButtonModule(uint8_t pin, bool onRaising = true);
+    ButtonModule(uint8_t pin, bool onRaising = true, MultiPrinterLoggerInterface *logger = nullptr);
 
     /**
      * @brief Destructor for ButtonModule.

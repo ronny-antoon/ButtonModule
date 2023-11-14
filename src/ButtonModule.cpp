@@ -1,21 +1,18 @@
 #include "ButtonModule.hpp"
 
-#include <esp32-hal-gpio.h>    // pinMode, digitalRead
-#include <freertos/FreeRTOS.h> // TaskHandle_t
-#include <freertos/task.h>     // TaskHandle_t
-
-#include <Arduino.h>                          // TODO: remove
-#define INCLUDE_uxTaskGetStackHighWaterMark 1 // TODO: remove
+#include <esp32-hal-gpio.h>   // pinMode, digitalRead
+#include <Arduino.h>          // TODO: remove it
+#define INCLUDE_vTaskDelete 1 // vTaskDelete
 
 void ButtonModule::buttonTriggerTask()
 {
     // Variables to track button press/release events and trigger firing
-    bool wasPressed = false;                                              // Flag indicating if the button was previously pressed
-    unsigned long lastPressTime = 0;                                      // Timestamp of the last button press
-    unsigned long lastReleaseTime = 0;                                    // Timestamp of the last button release
-    bool triggerFired = false;                                            // Flag indicating if a trigger event was fired
-    uint8_t countPress = 0;                                               // Count of consecutive button presses
-    bool doublePressOption = _doublePressCallback == NULL ? false : true; // Flag indicating if double press is configured
+    bool wasPressed = false;                                                 // Flag indicating if the button was previously pressed
+    unsigned long lastPressTime = 0;                                         // Timestamp of the last button press
+    unsigned long lastReleaseTime = 0;                                       // Timestamp of the last button release
+    bool triggerFired = false;                                               // Flag indicating if a trigger event was fired
+    uint8_t countPress = 0;                                                  // Count of consecutive button presses
+    bool doublePressOption = _doublePressCallback == nullptr ? false : true; // Flag indicating if double press is configured
 
     while (true)
     { // @note This task is not meant to be stopped, so it runs in an infinite loop, and should delay at the end of each iteration to allow other tasks to run, so never use continue.
@@ -24,8 +21,10 @@ void ButtonModule::buttonTriggerTask()
         {
             if (!isPressed())
             {
+                if (_logger != nullptr)
+                    Log_Debug(_logger, "buttonTriggerTask with free stack availabe: %d", uxTaskGetStackHighWaterMark(nullptr));
+
                 // Reset variables after button release
-                Serial.println(uxTaskGetStackHighWaterMark(NULL)); // TODO: remove
                 triggerFired = false;
                 wasPressed = false;
                 lastPressTime = 0;
@@ -102,31 +101,43 @@ void ButtonModule::buttonTriggerTask()
     }
 }
 
-ButtonModule::ButtonModule(uint8_t pin, bool onRaising)
+ButtonModule::ButtonModule(uint8_t pin, bool onRaising, MultiPrinterLoggerInterface *logger) : _pin(pin),
+                                                                                               _onRaising(onRaising),
+                                                                                               _logger(logger),
+                                                                                               _singlePressCallback(nullptr),
+                                                                                               _singlePressCallbackParameter(nullptr),
+                                                                                               _doublePressCallback(nullptr),
+                                                                                               _doublePressCallbackParameter(nullptr),
+                                                                                               _longPressCallback(nullptr),
+                                                                                               _longPressCallbackParameter(nullptr),
+                                                                                               _checkInterval(30),
+                                                                                               _debounceTime(90),
+                                                                                               _longPressTime(1000),
+                                                                                               _timeBetweenDoublePress(500),
+                                                                                               _buttonTriggerTaskHandle(nullptr)
 {
-    // Initialize member variables with default values
-    _pin = pin;                           // Pin connected to the button module
-    _onRaising = onRaising;               // Indicates whether the button triggers on the rising or falling edge
-    _singlePressCallback = NULL;          // Callback function for a single press event
-    _singlePressCallbackParameter = NULL; // Parameter for the single press callback function
-    _doublePressCallback = NULL;          // Callback function for a double press event
-    _doublePressCallbackParameter = NULL; // Parameter for the double press callback function
-    _longPressCallback = NULL;            // Callback function for a long press event
-    _longPressCallbackParameter = NULL;   // Parameter for the long press callback function
-    _checkInterval = 30;                  // Interval for checking the button trigger
-    _debounceTime = 90;                   // Debounce time to filter out noise
-    _longPressTime = 1000;                // Duration to consider a button press as a long press
-    _timeBetweenDoublePress = 500;        // Time between consecutive button presses for a double press
-    buttonTriggerTask_handle = NULL;      // Task handle for the button trigger detection task
-
+    if (_logger != nullptr)
+        Log_Debug(_logger, "ButtonModule created: pin=%d, onRaising=%d", pin, onRaising);
     // Set pin mode to input
     pinMode(_pin, INPUT);
 }
 
 ButtonModule::~ButtonModule()
 {
+    if (_logger != nullptr)
+        Log_Debug(_logger, "ButtonModule destroyed: pin=%d", _pin);
     // Clean up and stop listening when the instance is destroyed
     stopListening();
+
+    _singlePressCallbackParameter = nullptr;
+    // if (_singlePressCallbackParameter)
+    //     free(_singlePressCallbackParameter);
+
+    // if (_doublePressCallbackParameter)
+    //     delete _doublePressCallbackParameter;
+
+    // if (_longPressCallbackParameter)
+    //     delete _longPressCallbackParameter;
 }
 
 bool ButtonModule::isPressed()
@@ -167,6 +178,10 @@ void ButtonModule::startListening(uint32_t usStackDepth, uint8_t checkInterval, 
     // Stop any existing listening task
     stopListening();
 
+    if (_logger != nullptr)
+        Log_Debug(_logger, "startListening: usStackDepth=%d, checkInterval=%d, debounceTime=%d, longPressTime=%d, timeBetweenDoublePress=%d",
+                  usStackDepth, checkInterval, debounceTime, longPressTime, timeBetweenDoublePress);
+    // Start a new listening task
     xTaskCreate(
         [](void *thisPointer)
         { ((ButtonModule *)thisPointer)->buttonTriggerTask(); },
@@ -174,13 +189,18 @@ void ButtonModule::startListening(uint32_t usStackDepth, uint8_t checkInterval, 
         usStackDepth,
         this,
         1,
-        &buttonTriggerTask_handle);
+        &_buttonTriggerTaskHandle);
 }
 
 void ButtonModule::stopListening()
 {
+    if (_logger != nullptr)
+        Log_Debug(_logger, "stopListening");
+
     // Stop the listening task and clean up resources
-    if (buttonTriggerTask_handle != NULL)
-        vTaskDelete(buttonTriggerTask_handle);
-    buttonTriggerTask_handle = NULL;
+    if (_buttonTriggerTaskHandle != nullptr)
+    {
+        vTaskDelete(_buttonTriggerTaskHandle);
+    }
+    _buttonTriggerTaskHandle = nullptr;
 }
