@@ -1,9 +1,5 @@
 #include "ButtonModule.hpp"
 
-#include <esp32-hal-gpio.h>   // pinMode, digitalRead
-#include <Arduino.h>          // TODO: remove it
-#define INCLUDE_vTaskDelete 1 // vTaskDelete
-
 void ButtonModule::buttonTriggerTask()
 {
     // Variables to track button press/release events and trigger firing

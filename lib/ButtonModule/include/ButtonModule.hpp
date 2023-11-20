@@ -8,12 +8,12 @@
  * @author Ronny Antoon
  * @copyright MetaHouse LTD.
  */
+#include <MultiPrinterLoggerInterface.hpp>    // MultiPrinterLoggerInterface
+#include <esp32-hal-gpio.h>                   // pinMode, digitalRead
 #include <freertos/FreeRTOS.h>                // TaskHandle_t
 #include <freertos/task.h>                    // TaskHandle_t
 #define INCLUDE_uxTaskGetStackHighWaterMark 1 // TaskHandle_t
 #define INCLUDE_vTaskDelete 1                 // vTaskDelete
-
-#include <MultiPrinterLoggerInterface.hpp>
 
 #include "ButtonModuleInterface.hpp"
 
