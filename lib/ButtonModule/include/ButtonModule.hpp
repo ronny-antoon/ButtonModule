@@ -108,7 +108,7 @@ public:
      * @param longPressTime The long press time for button triggers.
      * @param timeBetweenDoublePress The time between double presses for button triggers.
      */
-    void startListening(uint32_t usStackDepth = 10000, uint8_t checkInterval = 30, uint8_t debounceTime = 90, uint16_t longPressTime = 1000, uint16_t timeBetweenDoublePress = 500) override;
+    void startListening(uint16_t usStackDepth = 10000, uint8_t checkInterval = 30, uint8_t debounceTime = 90, uint16_t longPressTime = 1000, uint16_t timeBetweenDoublePress = 500) override;
 
     /**
      * @brief Stops listening for button triggers.

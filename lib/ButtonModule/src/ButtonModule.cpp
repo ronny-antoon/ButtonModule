@@ -17,8 +17,7 @@ void ButtonModule::buttonTriggerTask()
         {
             if (!isPressed())
             {
-                if (_logger != nullptr)
-                    Log_Debug(_logger, "buttonTriggerTask with free stack availabe: %d", uxTaskGetStackHighWaterMark(nullptr));
+                Log_Verbose(_logger, "buttonTriggerTask with free stack availabe: %d", uxTaskGetStackHighWaterMark(nullptr));
 
                 // Reset variables after button release
                 triggerFired = false;
@@ -44,6 +43,7 @@ void ButtonModule::buttonTriggerTask()
                     // Check if the button is pressed for a long press and it's not a double press
                     if (_longPressCallback && countPress == 0 && millis() - lastPressTime >= _longPressTime)
                     {
+                        Log_Debug(_logger, "Long press detected");
                         _longPressCallback(_longPressCallbackParameter);
                         triggerFired = true;
                     }
@@ -75,6 +75,7 @@ void ButtonModule::buttonTriggerTask()
                         // Check if the button is released after the time between double presses
                         if (_singlePressCallback && (!_doublePressCallback || millis() - lastReleaseTime > _timeBetweenDoublePress))
                         {
+                            Log_Debug(_logger, "Single press detected");
                             // Invoke single press callback
                             _singlePressCallback(_singlePressCallbackParameter);
                             triggerFired = true;
@@ -83,6 +84,7 @@ void ButtonModule::buttonTriggerTask()
                         {
                             if (_doublePressCallback && countPress >= 2)
                             {
+                                Log_Debug(_logger, "Double press detected");
                                 // Invoke double press callback
                                 _doublePressCallback(_doublePressCallbackParameter);
                                 triggerFired = true;
@@ -112,28 +114,16 @@ ButtonModule::ButtonModule(uint8_t pin, bool onRaising, MultiPrinterLoggerInterf
                                                                                                _timeBetweenDoublePress(500),
                                                                                                _buttonTriggerTaskHandle(nullptr)
 {
-    if (_logger != nullptr)
-        Log_Debug(_logger, "ButtonModule created: pin=%d, onRaising=%d", pin, onRaising);
+    Log_Debug(_logger, "Button module created with parameters: pin=%d, onRaising=%d", pin, onRaising ? "HIGH" : "LOW");
     // Set pin mode to input
     pinMode(_pin, INPUT);
 }
 
 ButtonModule::~ButtonModule()
 {
-    if (_logger != nullptr)
-        Log_Debug(_logger, "ButtonModule destroyed: pin=%d", _pin);
+    Log_Debug(_logger, "Button module destroyed");
     // Clean up and stop listening when the instance is destroyed
     stopListening();
-
-    _singlePressCallbackParameter = nullptr;
-    // if (_singlePressCallbackParameter)
-    //     free(_singlePressCallbackParameter);
-
-    // if (_doublePressCallbackParameter)
-    //     delete _doublePressCallbackParameter;
-
-    // if (_longPressCallbackParameter)
-    //     delete _longPressCallbackParameter;
 }
 
 bool ButtonModule::isPressed()
@@ -144,6 +134,7 @@ bool ButtonModule::isPressed()
 
 void ButtonModule::onSinglePress(void (*callback)(void *), void *_pParameter)
 {
+    Log_Verbose(_logger, "On single press callback set");
     // Set the callback function and its parameter for a single press event
     _singlePressCallback = callback;
     _singlePressCallbackParameter = _pParameter;
@@ -151,6 +142,7 @@ void ButtonModule::onSinglePress(void (*callback)(void *), void *_pParameter)
 
 void ButtonModule::onDoublePress(void (*callback)(void *), void *_pParameter)
 {
+    Log_Verbose(_logger, "On double press callback set");
     // Set the callback function and its parameter for a double press event
     _doublePressCallback = callback;
     _doublePressCallbackParameter = _pParameter;
@@ -158,13 +150,16 @@ void ButtonModule::onDoublePress(void (*callback)(void *), void *_pParameter)
 
 void ButtonModule::onLongPress(void (*callback)(void *), void *_pParameter)
 {
+    Log_Verbose(_logger, "On long press callback set");
     // Set the callback function and its parameter for a long press event
     _longPressCallback = callback;
     _longPressCallbackParameter = _pParameter;
 }
 
-void ButtonModule::startListening(uint32_t usStackDepth, uint8_t checkInterval, uint8_t debounceTime, uint16_t longPressTime, uint16_t timeBetweenDoublePress)
+void ButtonModule::startListening(uint16_t usStackDepth, uint8_t checkInterval, uint8_t debounceTime, uint16_t longPressTime, uint16_t timeBetweenDoublePress)
 {
+    Log_Debug(_logger, "Button listening started with parameters: checkInterval=%d, debounceTime=%d, longPressTime=%d, timeBetweenDoublePress=%d",
+              checkInterval, debounceTime, longPressTime, timeBetweenDoublePress);
     // Set configuration parameters for button trigger detection
     _checkInterval = checkInterval;
     _debounceTime = debounceTime;
@@ -174,9 +169,6 @@ void ButtonModule::startListening(uint32_t usStackDepth, uint8_t checkInterval, 
     // Stop any existing listening task
     stopListening();
 
-    if (_logger != nullptr)
-        Log_Debug(_logger, "startListening: usStackDepth=%d, checkInterval=%d, debounceTime=%d, longPressTime=%d, timeBetweenDoublePress=%d",
-                  usStackDepth, checkInterval, debounceTime, longPressTime, timeBetweenDoublePress);
     // Start a new listening task
     xTaskCreate(
         [](void *thisPointer)
@@ -190,13 +182,9 @@ void ButtonModule::startListening(uint32_t usStackDepth, uint8_t checkInterval, 
 
 void ButtonModule::stopListening()
 {
-    if (_logger != nullptr)
-        Log_Debug(_logger, "stopListening");
-
+    Log_Debug(_logger, "Button listening stopped");
     // Stop the listening task and clean up resources
     if (_buttonTriggerTaskHandle != nullptr)
-    {
         vTaskDelete(_buttonTriggerTaskHandle);
-    }
     _buttonTriggerTaskHandle = nullptr;
 }
