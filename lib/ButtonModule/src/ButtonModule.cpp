@@ -17,7 +17,7 @@ void ButtonModule::buttonTriggerTask()
         {
             if (!isPressed())
             {
-                Log_Verbose(_logger, "buttonTriggerTask with free stack availabe: %d", uxTaskGetStackHighWaterMark(nullptr));
+                Log_Warning(_logger, "buttonTriggerTask with free stack availabe: %d", uxTaskGetStackHighWaterMark(nullptr));
 
                 // Reset variables after button release
                 triggerFired = false;
@@ -43,7 +43,7 @@ void ButtonModule::buttonTriggerTask()
                     // Check if the button is pressed for a long press and it's not a double press
                     if (_longPressCallback && countPress == 0 && millis() - lastPressTime >= _longPressTime)
                     {
-                        Log_Debug(_logger, "Long press detected");
+                        Log_Verbose(_logger, "Long press detected");
                         _longPressCallback(_longPressCallbackParameter);
                         triggerFired = true;
                     }
@@ -75,7 +75,7 @@ void ButtonModule::buttonTriggerTask()
                         // Check if the button is released after the time between double presses
                         if (_singlePressCallback && (!_doublePressCallback || millis() - lastReleaseTime > _timeBetweenDoublePress))
                         {
-                            Log_Debug(_logger, "Single press detected");
+                            Log_Verbose(_logger, "Single press detected");
                             // Invoke single press callback
                             _singlePressCallback(_singlePressCallbackParameter);
                             triggerFired = true;
@@ -84,7 +84,7 @@ void ButtonModule::buttonTriggerTask()
                         {
                             if (_doublePressCallback && countPress >= 2)
                             {
-                                Log_Debug(_logger, "Double press detected");
+                                Log_Verbose(_logger, "Double press detected");
                                 // Invoke double press callback
                                 _doublePressCallback(_doublePressCallbackParameter);
                                 triggerFired = true;
@@ -99,20 +99,21 @@ void ButtonModule::buttonTriggerTask()
     }
 }
 
-ButtonModule::ButtonModule(uint8_t pin, bool onRaising, MultiPrinterLoggerInterface *logger) : _pin(pin),
-                                                                                               _onRaising(onRaising),
-                                                                                               _logger(logger),
-                                                                                               _singlePressCallback(nullptr),
-                                                                                               _singlePressCallbackParameter(nullptr),
-                                                                                               _doublePressCallback(nullptr),
-                                                                                               _doublePressCallbackParameter(nullptr),
-                                                                                               _longPressCallback(nullptr),
-                                                                                               _longPressCallbackParameter(nullptr),
-                                                                                               _checkInterval(30),
-                                                                                               _debounceTime(90),
-                                                                                               _longPressTime(1000),
-                                                                                               _timeBetweenDoublePress(500),
-                                                                                               _buttonTriggerTaskHandle(nullptr)
+ButtonModule::ButtonModule(uint8_t pin, bool onRaising, MultiPrinterLoggerInterface *logger)
+    : _pin(pin),
+      _onRaising(onRaising),
+      _logger(logger),
+      _singlePressCallback(nullptr),
+      _singlePressCallbackParameter(nullptr),
+      _doublePressCallback(nullptr),
+      _doublePressCallbackParameter(nullptr),
+      _longPressCallback(nullptr),
+      _longPressCallbackParameter(nullptr),
+      _checkInterval(30),
+      _debounceTime(90),
+      _longPressTime(1000),
+      _timeBetweenDoublePress(500),
+      _buttonTriggerTaskHandle(nullptr)
 {
     Log_Debug(_logger, "Button module created with parameters: pin=%d, onRaising=%d", pin, onRaising ? "HIGH" : "LOW");
     // Set pin mode to input
@@ -158,8 +159,8 @@ void ButtonModule::onLongPress(void (*callback)(void *), void *_pParameter)
 
 void ButtonModule::startListening(uint16_t usStackDepth, uint8_t checkInterval, uint8_t debounceTime, uint16_t longPressTime, uint16_t timeBetweenDoublePress)
 {
-    Log_Debug(_logger, "Button listening started with parameters: checkInterval=%d, debounceTime=%d, longPressTime=%d, timeBetweenDoublePress=%d",
-              checkInterval, debounceTime, longPressTime, timeBetweenDoublePress);
+    Log_Verbose(_logger, "Button listening started with parameters: checkInterval=%d, debounceTime=%d, longPressTime=%d, timeBetweenDoublePress=%d",
+                checkInterval, debounceTime, longPressTime, timeBetweenDoublePress);
     // Set configuration parameters for button trigger detection
     _checkInterval = checkInterval;
     _debounceTime = debounceTime;
@@ -182,7 +183,7 @@ void ButtonModule::startListening(uint16_t usStackDepth, uint8_t checkInterval, 
 
 void ButtonModule::stopListening()
 {
-    Log_Debug(_logger, "Button listening stopped");
+    Log_Verbose(_logger, "Button listening stopped");
     // Stop the listening task and clean up resources
     if (_buttonTriggerTaskHandle != nullptr)
         vTaskDelete(_buttonTriggerTaskHandle);
