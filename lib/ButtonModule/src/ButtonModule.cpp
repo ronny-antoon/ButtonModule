@@ -15,13 +15,9 @@ void ButtonModule::buttonTriggerTask()
         else
         {
             if (isPressed())
-            {
                 handleButtonPress();
-            }
             else
-            {
                 handleButtonRelease();
-            }
         }
         // Wait for the next iteration
         vTaskDelay(_checkInterval / portTICK_PERIOD_MS);
