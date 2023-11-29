@@ -2,6 +2,7 @@
 #define CALLBACK_TEST_HPP
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 #include <Arduino.h>
 
 #include "ButtonModule.hpp"

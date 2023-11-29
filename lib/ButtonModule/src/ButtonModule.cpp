@@ -2,103 +2,107 @@
 
 void ButtonModule::buttonTriggerTask()
 {
-    // Variables to track button press/release events and trigger firing
-    bool wasPressed = false;           // Flag indicating if the button was previously pressed
-    unsigned long lastPressTime = 0;   // Timestamp of the last button press
-    unsigned long lastReleaseTime = 0; // Timestamp of the last button release
-    bool triggerFired = false;         // Flag indicating if a trigger event was fired
-    uint8_t countPress = 0;            // Count of consecutive button presses
+    resetButtonState();
 
     while (true)
-    { // @note This task is not meant to be stopped, so it runs in an infinite loop, and should delay at the end of each iteration to allow other tasks to run, so never use continue.
-        // Check if the trigger event fired; if so, wait until the button is released
+    {
         if (triggerFired)
         {
+            // Wait until the button is released before resetting variables
             if (!isPressed())
-            {
-                // Reset variables after button release
-                triggerFired = false;
-                wasPressed = false;
-                lastPressTime = 0;
-                lastReleaseTime = 0;
-                countPress = 0;
-
-                int stackHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
-                if (stackHighWaterMark <= 500)
-                {
-                    Log_Warning(_logger, "Stack high watermark is Low : %d bytes for pin %d", stackHighWaterMark, _pin);
-                }
-            }
+                resetButtonState();
         }
         else
         {
             if (isPressed())
             {
-                // Check if the button is pressed for the first time
-                if (!wasPressed)
-                {
-                    lastPressTime = millis();
-                    lastReleaseTime = 0;
-                    wasPressed = true;
-                }
-                else
-                {
-                    // Check if the button is pressed for a long press and it's not a double press
-                    if (_longPressCallback && countPress == 0 && millis() - lastPressTime >= _longPressTime)
-                    {
-                        Log_Verbose(_logger, "Long press detected");
-                        _longPressCallback(_longPressCallbackParameter);
-                        triggerFired = true;
-                    }
-                }
+                handleButtonPress();
             }
             else
             {
-                // Check if the button is released
-                if (wasPressed)
-                {
-                    lastReleaseTime = millis();
-                    countPress++;
-                    wasPressed = false;
-                }
-
-                if (countPress > 0)
-                {
-                    // Check if the button is released within the debounce time
-                    if (lastPressTime - lastReleaseTime <= _debounceTime)
-                    {
-                        // Ignore short button release (debounce)
-                        wasPressed = false;
-                        lastPressTime = 0;
-                        lastReleaseTime = 0;
-                        countPress--;
-                    }
-                    else
-                    {
-                        // Check if the button is released after the time between double presses
-                        if (_singlePressCallback && (!_doublePressCallback || millis() - lastReleaseTime > _timeBetweenDoublePress))
-                        {
-                            Log_Verbose(_logger, "Single press detected");
-                            // Invoke single press callback
-                            _singlePressCallback(_singlePressCallbackParameter);
-                            triggerFired = true;
-                        }
-                        else
-                        {
-                            if (_doublePressCallback && countPress >= 2)
-                            {
-                                Log_Verbose(_logger, "Double press detected");
-                                // Invoke double press callback
-                                _doublePressCallback(_doublePressCallbackParameter);
-                                triggerFired = true;
-                            }
-                        }
-                    }
-                }
+                handleButtonRelease();
             }
         }
         // Wait for the next iteration
         vTaskDelay(_checkInterval / portTICK_PERIOD_MS);
+    }
+}
+
+void ButtonModule::resetButtonState()
+{
+    wasPressed = false;
+    lastPressTime = 0;
+    lastReleaseTime = 0;
+    triggerFired = false;
+    countPress = 0;
+
+    int stackHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+    if (stackHighWaterMark <= 500)
+    {
+        Log_Warning(_logger, "Stack high watermark is Low : %d bytes for pin %d", stackHighWaterMark, _pin);
+    }
+}
+
+void ButtonModule::handleButtonPress()
+{
+    if (!wasPressed)
+    {
+        // First time the button is pressed
+        lastPressTime = millis();
+        lastReleaseTime = 0;
+        wasPressed = true;
+    }
+    else
+    {
+        // Button pressed again, check for long press and not a double press
+        if (_longPressCallback && countPress == 0 && millis() - lastPressTime >= _longPressTime)
+        {
+            Log_Verbose(_logger, "Long press detected");
+            _longPressCallback(_longPressCallbackParameter);
+            triggerFired = true;
+        }
+    }
+}
+
+void ButtonModule::handleButtonRelease()
+{
+    if (wasPressed)
+    {
+        // Button was released
+        lastReleaseTime = millis();
+        countPress++;
+        wasPressed = false;
+    }
+
+    if (countPress > 0)
+    {
+        // Check if the button is released within the debounce time
+        if (lastPressTime - lastReleaseTime <= _debounceTime)
+        {
+            // Ignore short button release (debounce)
+            resetButtonState();
+        }
+        else
+        {
+            // Check for single or double press
+            handleSingleOrDoublePress();
+        }
+    }
+}
+
+void ButtonModule::handleSingleOrDoublePress()
+{
+    if (_singlePressCallback && (!_doublePressCallback || millis() - lastReleaseTime > _timeBetweenDoublePress))
+    {
+        Log_Verbose(_logger, "Single press detected");
+        _singlePressCallback(_singlePressCallbackParameter);
+        triggerFired = true;
+    }
+    else if (_doublePressCallback && countPress >= 2)
+    {
+        Log_Verbose(_logger, "Double press detected");
+        _doublePressCallback(_doublePressCallbackParameter);
+        triggerFired = true;
     }
 }
 

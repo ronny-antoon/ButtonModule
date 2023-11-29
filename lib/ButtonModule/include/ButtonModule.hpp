@@ -47,12 +47,22 @@ private:
     uint16_t _timeBetweenDoublePress;                // Time between double press for button trigger
     TaskHandle_t _buttonTriggerTaskHandle = nullptr; // Task handle for the button trigger task
 
+    bool wasPressed;
+    unsigned long lastPressTime;
+    unsigned long lastReleaseTime;
+    bool triggerFired;
+    uint8_t countPress;
+
     /**
      * @brief Button trigger task.
      *
      * @details This task detects button triggers and invokes the appropriate callback functions.
      */
     void buttonTriggerTask();
+    void resetButtonState();
+    void handleButtonPress();
+    void handleButtonRelease();
+    void handleSingleOrDoublePress();
 
 public:
     /**
