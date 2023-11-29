@@ -3,12 +3,13 @@
 void ButtonModule::buttonTriggerTask()
 {
     // Variables to track button press/release events and trigger firing
-    bool wasPressed = false;                                                 // Flag indicating if the button was previously pressed
-    unsigned long lastPressTime = 0;                                         // Timestamp of the last button press
-    unsigned long lastReleaseTime = 0;                                       // Timestamp of the last button release
-    bool triggerFired = false;                                               // Flag indicating if a trigger event was fired
-    uint8_t countPress = 0;                                                  // Count of consecutive button presses
-    bool doublePressOption = _doublePressCallback == nullptr ? false : true; // Flag indicating if double press is configured
+    bool wasPressed = false;           // Flag indicating if the button was previously pressed
+    unsigned long lastPressTime = 0;   // Timestamp of the last button press
+    unsigned long lastReleaseTime = 0; // Timestamp of the last button release
+    bool triggerFired = false;         // Flag indicating if a trigger event was fired
+    uint8_t countPress = 0;            // Count of consecutive button presses
+
+    uint16_t _waterMarkCounter = 0; // Counter for checking the stack high watermark
 
     while (true)
     { // @note This task is not meant to be stopped, so it runs in an infinite loop, and should delay at the end of each iteration to allow other tasks to run, so never use continue.
@@ -17,8 +18,6 @@ void ButtonModule::buttonTriggerTask()
         {
             if (!isPressed())
             {
-                Log_Warning(_logger, "buttonTriggerTask with free stack availabe: %d", uxTaskGetStackHighWaterMark(nullptr));
-
                 // Reset variables after button release
                 triggerFired = false;
                 wasPressed = false;
@@ -95,27 +94,27 @@ void ButtonModule::buttonTriggerTask()
             }
         }
         // Wait for the next iteration
-        delay(_checkInterval);
+        vTaskDelay(_checkInterval / portTICK_PERIOD_MS);
+
+        // Check the stack high watermark every 100 iterations
+        if (_waterMarkCounter++ >= 1000)
+        {
+            _waterMarkCounter = 0;
+            int stackHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
+            if (stackHighWaterMark <= 500)
+            {
+                Log_Warning(_logger, "Stack high watermark is Low : %d bytes for pin %d", stackHighWaterMark, _pin);
+            }
+        }
     }
 }
 
 ButtonModule::ButtonModule(uint8_t pin, bool onRaising, MultiPrinterLoggerInterface *logger)
     : _pin(pin),
       _onRaising(onRaising),
-      _logger(logger),
-      _singlePressCallback(nullptr),
-      _singlePressCallbackParameter(nullptr),
-      _doublePressCallback(nullptr),
-      _doublePressCallbackParameter(nullptr),
-      _longPressCallback(nullptr),
-      _longPressCallbackParameter(nullptr),
-      _checkInterval(30),
-      _debounceTime(90),
-      _longPressTime(1000),
-      _timeBetweenDoublePress(500),
-      _buttonTriggerTaskHandle(nullptr)
+      _logger(logger)
 {
-    Log_Debug(_logger, "Button module created with parameters: pin=%d, onRaising=%d", pin, onRaising ? "HIGH" : "LOW");
+    Log_Debug(_logger, "Button module created with parameters: pin=%d, onRaising=%s", pin, onRaising ? "HIGH" : "LOW");
     // Set pin mode to input
     pinMode(_pin, INPUT);
 }
@@ -130,7 +129,7 @@ ButtonModule::~ButtonModule()
 bool ButtonModule::isPressed()
 {
     // Check if the button is pressed based on the configured edge
-    return digitalRead(_pin) == _onRaising;
+    return (digitalRead(_pin) == _onRaising);
 }
 
 void ButtonModule::onSinglePress(void (*callback)(void *), void *_pParameter)
@@ -159,8 +158,8 @@ void ButtonModule::onLongPress(void (*callback)(void *), void *_pParameter)
 
 void ButtonModule::startListening(uint16_t usStackDepth, uint8_t checkInterval, uint8_t debounceTime, uint16_t longPressTime, uint16_t timeBetweenDoublePress)
 {
-    Log_Verbose(_logger, "Button listening started with parameters: checkInterval=%d, debounceTime=%d, longPressTime=%d, timeBetweenDoublePress=%d",
-                checkInterval, debounceTime, longPressTime, timeBetweenDoublePress);
+    Log_Verbose(_logger, "Button listening started with parameters: usStackDepth=%d,  checkInterval=%d, debounceTime=%d, longPressTime=%d, timeBetweenDoublePress=%d",
+                usStackDepth, checkInterval, debounceTime, longPressTime, timeBetweenDoublePress);
     // Set configuration parameters for button trigger detection
     _checkInterval = checkInterval;
     _debounceTime = debounceTime;
@@ -183,9 +182,11 @@ void ButtonModule::startListening(uint16_t usStackDepth, uint8_t checkInterval, 
 
 void ButtonModule::stopListening()
 {
-    Log_Verbose(_logger, "Button listening stopped");
     // Stop the listening task and clean up resources
     if (_buttonTriggerTaskHandle != nullptr)
+    {
+        Log_Verbose(_logger, "Button listening stopped");
         vTaskDelete(_buttonTriggerTaskHandle);
+    }
     _buttonTriggerTaskHandle = nullptr;
 }

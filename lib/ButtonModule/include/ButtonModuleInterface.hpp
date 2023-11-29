@@ -39,7 +39,7 @@ public:
      * @param callback The callback function, taking a void pointer as a parameter.
      * @param _pParameter The void pointer parameter for the callback function.
      */
-    virtual void onSinglePress(void (*callback)(void *), void *_pParameter) = 0;
+    virtual void onSinglePress(void (*callback)(void *), void *_pParameter = nullptr) = 0;
 
     /**
      * @brief Sets the callback function for a double press event.
@@ -47,7 +47,7 @@ public:
      * @param callback The callback function, taking a void pointer as a parameter.
      * @param _pParameter The void pointer parameter for the callback function.
      */
-    virtual void onDoublePress(void (*callback)(void *), void *_pParameter) = 0;
+    virtual void onDoublePress(void (*callback)(void *), void *_pParameter = nullptr) = 0;
 
     /**
      * @brief Sets the callback function for a long press event.
@@ -55,7 +55,7 @@ public:
      * @param callback The callback function, taking a void pointer as a parameter.
      * @param _pParameter The void pointer parameter for the callback function.
      */
-    virtual void onLongPress(void (*callback)(void *), void *_pParameter) = 0;
+    virtual void onLongPress(void (*callback)(void *), void *_pParameter = nullptr) = 0;
 
     /**
      * @brief Starts listening for button triggers.

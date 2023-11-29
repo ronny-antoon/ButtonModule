@@ -27,24 +27,24 @@
 class ButtonModule : public ButtonModuleInterface
 {
 private:
-    MultiPrinterLoggerInterface *_logger; // Logger for logging
+    MultiPrinterLoggerInterface *_logger = nullptr; // Logger for logging
 
-    uint8_t _pin;    // Pin of the button module
-    bool _onRaising; // Flag indicating whether the button module triggers on raising or falling edge
+    uint8_t _pin = 0;       // Pin of the button module
+    bool _onRaising = true; // Flag indicating whether the button module triggers on raising or falling edge
 
-    void (*_singlePressCallback)(void *); // Callback function for single press
-    void *_singlePressCallbackParameter;  // Parameter for the callback function for single press
+    void (*_singlePressCallback)(void *) = nullptr; // Callback function for single press
+    void *_singlePressCallbackParameter = nullptr;  // Parameter for the callback function for single press
 
-    void (*_doublePressCallback)(void *); // Callback function for double press
-    void *_doublePressCallbackParameter;  // Parameter for the callback function for double press
+    void (*_doublePressCallback)(void *) = nullptr; // Callback function for double press
+    void *_doublePressCallbackParameter = nullptr;  // Parameter for the callback function for double press
 
-    void (*_longPressCallback)(void *); // Callback function for long press
-    void *_longPressCallbackParameter;  // Parameter for the callback function for long press
+    void (*_longPressCallback)(void *) = nullptr; // Callback function for long press
+    void *_longPressCallbackParameter = nullptr;  // Parameter for the callback function for long press
 
-    uint8_t _checkInterval;                          // Check interval for button trigger
-    uint8_t _debounceTime;                           // Debounce time for button trigger
-    uint16_t _longPressTime;                         // Long press time for button trigger
-    uint16_t _timeBetweenDoublePress;                // Time between double press for button trigger
+    uint8_t _checkInterval = 30;                     // Check interval for button trigger
+    uint8_t _debounceTime = 90;                      // Debounce time for button trigger
+    uint16_t _longPressTime = 1000;                  // Long press time for button trigger
+    uint16_t _timeBetweenDoublePress = 500;          // Time between double press for button trigger
     TaskHandle_t _buttonTriggerTaskHandle = nullptr; // Task handle for the button trigger task
 
     /**
@@ -108,7 +108,7 @@ public:
      * @param longPressTime The long press time for button triggers.
      * @param timeBetweenDoublePress The time between double presses for button triggers.
      */
-    void startListening(uint16_t usStackDepth = 10000, uint8_t checkInterval = 30, uint8_t debounceTime = 90, uint16_t longPressTime = 1000, uint16_t timeBetweenDoublePress = 500) override;
+    void startListening(uint16_t usStackDepth, uint8_t checkInterval, uint8_t debounceTime, uint16_t longPressTime, uint16_t timeBetweenDoublePress) override;
 
     /**
      * @brief Stops listening for button triggers.
