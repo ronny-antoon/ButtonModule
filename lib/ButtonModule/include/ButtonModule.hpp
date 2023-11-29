@@ -27,7 +27,7 @@
 class ButtonModule : public ButtonModuleInterface
 {
 private:
-    MultiPrinterLoggerInterface *_logger = nullptr; // Logger for logging
+    MultiPrinterLoggerInterface *const _logger; // Logger for logging
 
     uint8_t _pin = 0;       // Pin of the button module
     bool _onRaising = true; // Flag indicating whether the button module triggers on raising or falling edge
@@ -41,10 +41,10 @@ private:
     void (*_longPressCallback)(void *) = nullptr; // Callback function for long press
     void *_longPressCallbackParameter = nullptr;  // Parameter for the callback function for long press
 
-    uint8_t _checkInterval = 30;                     // Check interval for button trigger
-    uint8_t _debounceTime = 90;                      // Debounce time for button trigger
-    uint16_t _longPressTime = 1000;                  // Long press time for button trigger
-    uint16_t _timeBetweenDoublePress = 500;          // Time between double press for button trigger
+    uint8_t _checkInterval;                          // Check interval for button trigger
+    uint8_t _debounceTime;                           // Debounce time for button trigger
+    uint16_t _longPressTime;                         // Long press time for button trigger
+    uint16_t _timeBetweenDoublePress;                // Time between double press for button trigger
     TaskHandle_t _buttonTriggerTaskHandle = nullptr; // Task handle for the button trigger task
 
     /**
@@ -61,7 +61,9 @@ public:
      * @param pin The pin of the button module.
      * @param onRaising Flag indicating whether the button module triggers on raising or falling edge.
      */
-    ButtonModule(uint8_t pin, bool onRaising = true, MultiPrinterLoggerInterface *logger = nullptr);
+    ButtonModule(
+        uint8_t const pin, bool const onRaising = true,
+        MultiPrinterLoggerInterface *const logger = nullptr);
 
     /**
      * @brief Destructor for ButtonModule.
@@ -73,7 +75,7 @@ public:
      *
      * @return true if the button is pressed, false otherwise.
      */
-    bool isPressed() override;
+    bool const isPressed() const override;
 
     /**
      * @brief Sets the callback function for a single press event.
@@ -108,7 +110,10 @@ public:
      * @param longPressTime The long press time for button triggers.
      * @param timeBetweenDoublePress The time between double presses for button triggers.
      */
-    void startListening(uint16_t usStackDepth = 3000, uint8_t checkInterval = 30, uint8_t debounceTime = 90, uint16_t longPressTime = 1000, uint16_t timeBetweenDoublePress = 500) override;
+    void startListening(
+        uint16_t usStackDepth = 3000, uint8_t checkInterval = 30,
+        uint8_t debounceTime = 90, uint16_t longPressTime = 1000,
+        uint16_t timeBetweenDoublePress = 500) override;
 
     /**
      * @brief Stops listening for button triggers.

@@ -31,7 +31,7 @@ public:
      *
      * @return true if the button is pressed, false otherwise.
      */
-    virtual bool isPressed() = 0;
+    virtual bool const isPressed() const = 0;
 
     /**
      * @brief Sets the callback function for a single press event.
@@ -66,7 +66,10 @@ public:
      * @param longPressTime The long press time for button triggers.
      * @param timeBetweenDoublePress The time between double presses for button triggers.
      */
-    virtual void startListening(uint16_t usStackDepth = 10000, uint8_t checkInterval = 30, uint8_t debounceTime = 90, uint16_t longPressTime = 1000, uint16_t timeBetweenDoublePress = 500) = 0;
+    virtual void startListening(
+        uint16_t const usStackDepth = 10000, uint8_t const checkInterval = 30,
+        uint8_t const debounceTime = 90, uint16_t const longPressTime = 1000,
+        uint16_t const timeBetweenDoublePress = 500) = 0;
 
     /**
      * @brief Stops listening for button triggers.
