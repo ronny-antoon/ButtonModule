@@ -81,7 +81,7 @@ public:
      * @param callback The callback function, taking a void pointer as a parameter.
      * @param _pParameter The void pointer parameter for the callback function.
      */
-    void onSinglePress(void (*callback)(void *), void *_pParameter) override;
+    void onSinglePress(void (*callback)(void *), void *_pParameter = nullptr) override;
 
     /**
      * @brief Sets the callback function for a double press event.
@@ -89,7 +89,7 @@ public:
      * @param callback The callback function, taking a void pointer as a parameter.
      * @param _pParameter The void pointer parameter for the callback function.
      */
-    void onDoublePress(void (*callback)(void *), void *_pParameter) override;
+    void onDoublePress(void (*callback)(void *), void *_pParameter = nullptr) override;
 
     /**
      * @brief Sets the callback function for a long press event.
@@ -97,7 +97,7 @@ public:
      * @param callback The callback function, taking a void pointer as a parameter.
      * @param _pParameter The void pointer parameter for the callback function.
      */
-    void onLongPress(void (*callback)(void *), void *_pParameter) override;
+    void onLongPress(void (*callback)(void *), void *_pParameter = nullptr) override;
 
     /**
      * @brief Starts listening for button triggers.
@@ -108,7 +108,7 @@ public:
      * @param longPressTime The long press time for button triggers.
      * @param timeBetweenDoublePress The time between double presses for button triggers.
      */
-    void startListening(uint16_t usStackDepth, uint8_t checkInterval, uint8_t debounceTime, uint16_t longPressTime, uint16_t timeBetweenDoublePress) override;
+    void startListening(uint16_t usStackDepth = 3000, uint8_t checkInterval = 30, uint8_t debounceTime = 90, uint16_t longPressTime = 1000, uint16_t timeBetweenDoublePress = 500) override;
 
     /**
      * @brief Stops listening for button triggers.
