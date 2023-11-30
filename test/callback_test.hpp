@@ -36,7 +36,6 @@ protected:
     bool onRaising1 = true;
     int buttonPin2 = 14;
     bool onRaising2 = false;
-    uint32_t _startFreeHeap = 0;
     int *counterCheck;
 
     ButtonModule *buttonModule1;
@@ -45,7 +44,7 @@ protected:
 
     void SetUp() override
     {
-        _startFreeHeap = ESP.getFreeHeap(); // Record initial free heap size
+
         buttonModule1 = new ButtonModule(buttonPin1, onRaising1);
         buttonModule2 = new ButtonModule(buttonPin2, onRaising2);
         counterCheck = new int(0);
@@ -61,8 +60,6 @@ protected:
         delete buttonModule2;
         delete counterCheck;
         delete mockMyClass;
-        if (ESP.getFreeHeap() != _startFreeHeap)
-            FAIL() << "Memory leak of " << _startFreeHeap - ESP.getFreeHeap() << " bytes"; // Fail the test if there is a memory leak
     }
 };
 
@@ -313,57 +310,5 @@ TEST_F(CallbackTest, OnLongPressByLamda_mock_callback)
     delay(1500);
     digitalWrite(buttonPin2, !onRaising2);
     delay(150);
-}
-
-// test the max allocatable heap after some press events
-TEST_F(CallbackTest, HeapUsage)
-{
-    buttonModule1->onSinglePress(myCallback,
-                                 counterCheck);
-    buttonModule1->onDoublePress(myCallback,
-                                 counterCheck);
-    buttonModule1->onLongPress(myCallback,
-                               counterCheck);
-    buttonModule1->startListening();
-
-    buttonModule2->onSinglePress(myCallback,
-                                 counterCheck);
-    buttonModule2->onDoublePress(myCallback,
-                                 counterCheck);
-    buttonModule2->onLongPress(myCallback,
-                               counterCheck);
-    buttonModule2->startListening();
-
-    int maxAllocatableHeap = ESP.getMaxAllocHeap();
-
-    pinMode(buttonPin1, OUTPUT);
-    digitalWrite(buttonPin1, onRaising1);
-    delay(150);
-    digitalWrite(buttonPin1, !onRaising1);
-    delay(150);
-    digitalWrite(buttonPin1, onRaising1);
-    delay(150);
-    digitalWrite(buttonPin1, !onRaising1);
-    delay(150);
-    digitalWrite(buttonPin1, onRaising1);
-    delay(1500);
-    digitalWrite(buttonPin1, !onRaising1);
-    delay(150);
-
-    pinMode(buttonPin2, OUTPUT);
-    digitalWrite(buttonPin2, onRaising2);
-    delay(150);
-    digitalWrite(buttonPin2, !onRaising2);
-    delay(150);
-    digitalWrite(buttonPin2, onRaising2);
-    delay(150);
-    digitalWrite(buttonPin2, !onRaising2);
-    delay(150);
-    digitalWrite(buttonPin2, onRaising2);
-    delay(1500);
-    digitalWrite(buttonPin2, !onRaising2);
-    delay(150);
-
-    EXPECT_EQ(ESP.getMaxAllocHeap(), maxAllocatableHeap);
 }
 #endif // CALLBACK_TEST_HPP

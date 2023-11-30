@@ -31,12 +31,6 @@ void ButtonModule::resetButtonState()
     lastReleaseTime = 0;
     triggerFired = false;
     countPress = 0;
-
-    int stackHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
-    if (stackHighWaterMark <= 500)
-    {
-        Log_Warning(_logger, "Stack high watermark is Low : %d bytes for pin %d", stackHighWaterMark, _pin);
-    }
 }
 
 void ButtonModule::handleButtonPress()
@@ -109,14 +103,14 @@ ButtonModule::ButtonModule(
       _onRaising(onRaising),
       _logger(logger)
 {
-    Log_Debug(_logger, "Button module created with parameters: pin=%d, onRaising=%s", pin, onRaising ? "HIGH" : "LOW");
+    Log_Debug(_logger, "Created with parameters: pin = %d, onRaising = %s", pin, onRaising ? "HIGH" : "LOW");
     // Set pin mode to input
     pinMode(_pin, INPUT);
 }
 
 ButtonModule::~ButtonModule()
 {
-    Log_Debug(_logger, "Button module destroyed");
+    Log_Debug(_logger, "Destroyed");
     // Clean up and stop listening when the instance is destroyed
     stopListening();
 }
@@ -168,7 +162,7 @@ void ButtonModule::startListening(
     stopListening();
 
     // Start a new listening task
-    xTaskCreate(
+    xTASK_CREATE_TRACKED(
         [](void *thisPointer)
         { static_cast<ButtonModule *>(thisPointer)->buttonTriggerTask(); },
         "buttonTriggerTask",
@@ -176,6 +170,14 @@ void ButtonModule::startListening(
         this,
         1,
         &_buttonTriggerTaskHandle);
+    // xTaskCreate(
+    //     [](void *thisPointer)
+    //     { static_cast<ButtonModule *>(thisPointer)->buttonTriggerTask(); },
+    //     "buttonTriggerTask",
+    //     usStackDepth,
+    //     this,
+    //     1,
+    //     &_buttonTriggerTaskHandle);
 }
 
 void ButtonModule::stopListening()
@@ -184,7 +186,8 @@ void ButtonModule::stopListening()
     if (_buttonTriggerTaskHandle != nullptr)
     {
         Log_Verbose(_logger, "Button listening stopped");
-        vTaskDelete(_buttonTriggerTaskHandle);
+        xTASK_DELETE_TRACKED(&_buttonTriggerTaskHandle);
+        // vTaskDelete(_buttonTriggerTaskHandle);
     }
     _buttonTriggerTaskHandle = nullptr;
 }

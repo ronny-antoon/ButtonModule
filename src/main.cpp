@@ -38,7 +38,15 @@ void setup()
     Serial.printf("After Initialize, free heap: %u\n", esp_get_free_heap_size());
 }
 
+int counter = 0;
 void loop()
 {
-    // Do nothing
+    delay(1000);
+    Serial.printf("Loop %d\n", counter++);
+
+    if (counter == 10)
+    {
+        counter = 0;
+        xPRINT_TASK_LIST();
+    }
 }
