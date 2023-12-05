@@ -146,7 +146,7 @@ void ButtonModule::onLongPress(void (*callback)(void *), void *_pParameter)
 }
 
 void ButtonModule::startListening(
-    uint16_t usStackDepth, uint8_t checkInterval,
+    uint16_t usStackDepth, char *taskName, uint8_t checkInterval,
     uint8_t debounceTime, uint16_t longPressTime,
     uint16_t timeBetweenDoublePress)
 {
@@ -158,6 +158,10 @@ void ButtonModule::startListening(
     _longPressTime = longPressTime;
     _timeBetweenDoublePress = timeBetweenDoublePress;
 
+    int length = strlen(taskName);
+    _taskName = new char[length + 1];
+    strcpy(_taskName, taskName);
+
     // Stop any existing listening task
     stopListening();
 
@@ -165,7 +169,7 @@ void ButtonModule::startListening(
     xTASK_CREATE_TRACKED(
         [](void *thisPointer)
         { static_cast<ButtonModule *>(thisPointer)->buttonTriggerTask(); },
-        "buttonTriggerTask",
+        _taskName,
         usStackDepth,
         this,
         1,

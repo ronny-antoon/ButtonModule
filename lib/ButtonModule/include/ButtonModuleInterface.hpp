@@ -61,15 +61,16 @@ public:
      * @brief Starts listening for button triggers.
      *
      * @param usStackDepth Stack depth for the task.
+     * @param taskName The name of the task.
      * @param checkInterval The check interval for button triggers.
      * @param debounceTime The debounce time for button triggers.
      * @param longPressTime The long press time for button triggers.
      * @param timeBetweenDoublePress The time between double presses for button triggers.
      */
     virtual void startListening(
-        uint16_t const usStackDepth = 10000, uint8_t const checkInterval = 30,
-        uint8_t const debounceTime = 90, uint16_t const longPressTime = 1000,
-        uint16_t const timeBetweenDoublePress = 500) = 0;
+        uint16_t usStackDepth = 3000, char *taskName = "buttonTriggerTask", uint8_t checkInterval = 30,
+        uint8_t debounceTime = 90, uint16_t longPressTime = 1000,
+        uint16_t timeBetweenDoublePress = 500) = 0;
 
     /**
      * @brief Stops listening for button triggers.
