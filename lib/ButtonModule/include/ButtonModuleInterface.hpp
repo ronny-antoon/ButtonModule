@@ -68,7 +68,7 @@ public:
      * @param timeBetweenDoublePress The time between double presses for button triggers.
      */
     virtual void startListening(
-        uint16_t usStackDepth = 3000, char *taskName = "buttonTriggerTask", uint8_t checkInterval = 30,
+        uint16_t usStackDepth = 3000, char const *taskName = "buttonTriggerTask", uint8_t checkInterval = 30,
         uint8_t debounceTime = 90, uint16_t longPressTime = 1000,
         uint16_t timeBetweenDoublePress = 500) = 0;
 

@@ -146,7 +146,7 @@ void ButtonModule::onLongPress(void (*callback)(void *), void *_pParameter)
 }
 
 void ButtonModule::startListening(
-    uint16_t usStackDepth, char *taskName, uint8_t checkInterval,
+    uint16_t usStackDepth, char const *taskName, uint8_t checkInterval,
     uint8_t debounceTime, uint16_t longPressTime,
     uint16_t timeBetweenDoublePress)
 {
@@ -158,6 +158,11 @@ void ButtonModule::startListening(
     _longPressTime = longPressTime;
     _timeBetweenDoublePress = timeBetweenDoublePress;
 
+    if (taskName == nullptr || strlen(taskName) < 2 || strcmp(taskName, "") == 0 || strlen(taskName) > 50)
+    {
+        // Use default task name
+        taskName = "buttonTriggerTask";
+    }
     int length = strlen(taskName);
     _taskName = new char[length + 1];
     strcpy(_taskName, taskName);

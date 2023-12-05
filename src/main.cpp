@@ -32,7 +32,7 @@ void setup()
     int *parameter = new int(10);
     buttonModule->onSinglePress(singlePressCallback, parameter);
 
-    buttonModule->startListening(2000, 30, 90, 1000, 500);
+    buttonModule->startListening(2000, nullptr, 30, 90, 1000, 500);
 
     Serial.printf("Minimum heap that has ever been available: %u\n", esp_get_minimum_free_heap_size());
     Serial.printf("After Initialize, free heap: %u\n", esp_get_free_heap_size());
@@ -47,6 +47,6 @@ void loop()
     if (counter == 10)
     {
         counter = 0;
-        xPRINT_TASK_LIST();
+        xTASK_LIST_PRINT();
     }
 }
