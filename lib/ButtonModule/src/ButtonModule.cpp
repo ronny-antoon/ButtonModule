@@ -113,6 +113,12 @@ ButtonModule::~ButtonModule()
     Log_Debug(_logger, "Destroyed");
     // Clean up and stop listening when the instance is destroyed
     stopListening();
+
+    if (_taskName != nullptr)
+    {
+        delete[] _taskName;
+        _taskName = nullptr;
+    }
 }
 
 bool const ButtonModule::isPressed() const
