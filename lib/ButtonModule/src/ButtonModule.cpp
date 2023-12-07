@@ -113,12 +113,6 @@ ButtonModule::~ButtonModule()
     Log_Debug(_logger, "Destroyed");
     // Clean up and stop listening when the instance is destroyed
     stopListening();
-
-    if (_taskName != nullptr)
-    {
-        delete[] _taskName;
-        _taskName = nullptr;
-    }
 }
 
 bool const ButtonModule::isPressed() const
@@ -164,23 +158,22 @@ void ButtonModule::startListening(
     _longPressTime = longPressTime;
     _timeBetweenDoublePress = timeBetweenDoublePress;
 
+    bool nameing = true;
     if (taskName == nullptr || strlen(taskName) < 2 || strcmp(taskName, "") == 0 || strlen(taskName) > 50)
     {
         // Use default task name
-        taskName = "buttonTriggerTask";
+        nameing = false;
+        // taskName = "buttonTriggerTask";
     }
-    int length = strlen(taskName);
-    _taskName = new char[length + 1];
-    strcpy(_taskName, taskName);
 
     // Stop any existing listening task
     stopListening();
 
-    // Start a new listening task
+    // Start listening task
     xTASK_CREATE_TRACKED(
         [](void *thisPointer)
         { static_cast<ButtonModule *>(thisPointer)->buttonTriggerTask(); },
-        _taskName,
+        nameing ? taskName : "buttonTriggerTask",
         usStackDepth,
         this,
         1,

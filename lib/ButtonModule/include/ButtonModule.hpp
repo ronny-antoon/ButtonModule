@@ -38,7 +38,6 @@ private:
     void (*_longPressCallback)(void *) = nullptr; // Callback function for long press
     void *_longPressCallbackParameter = nullptr;  // Parameter for the callback function for long press
 
-    char *_taskName;                                 // Name of the button trigger task
     uint8_t _checkInterval;                          // Check interval for button trigger
     uint8_t _debounceTime;                           // Debounce time for button trigger
     uint16_t _longPressTime;                         // Long press time for button trigger
