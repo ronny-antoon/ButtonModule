@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include "ButtonModule.hpp"
 
-// Constructor
 ButtonModule::ButtonModule(
     uint8_t const pin, MultiPrinterLoggerInterface *const logger,
     bool const isActiveHigh,
@@ -29,14 +28,12 @@ ButtonModule::ButtonModule(
     startListening(usStackDepth, "buttonTriggerTask", 30, debounceTimeMs, longPressDurationMs, timeBetweenDoublePress);
 }
 
-// Destructor
 ButtonModule::~ButtonModule()
 {
     Log_Debug(m_logger, "Destroyed");
     stopListening();
 }
 
-// Start listening for button triggers
 void ButtonModule::startListening(
     uint16_t usStackDepth, char const *taskName, uint8_t checkInterval,
     uint8_t debounceTime, uint16_t longPressTime,
@@ -68,7 +65,6 @@ void ButtonModule::startListening(
         &m_buttonTriggerTaskHandle);
 }
 
-// Stop listening for button triggers
 void ButtonModule::stopListening()
 {
     if (m_buttonTriggerTaskHandle != nullptr)
@@ -79,7 +75,6 @@ void ButtonModule::stopListening()
     m_buttonTriggerTaskHandle = nullptr;
 }
 
-// Set single press callback
 void ButtonModule::setSinglePressCallback(CallbackButtonFunction callback, AnyType *callbackParameter)
 {
     Log_Verbose(m_logger, "On single press callback set");
@@ -87,7 +82,6 @@ void ButtonModule::setSinglePressCallback(CallbackButtonFunction callback, AnyTy
     m_singlePressCallbackParameter = callbackParameter;
 }
 
-// Set double press callback
 void ButtonModule::setDoublePressCallback(CallbackButtonFunction callback, AnyType *callbackParameter)
 {
     Log_Verbose(m_logger, "On double press callback set");
@@ -95,7 +89,6 @@ void ButtonModule::setDoublePressCallback(CallbackButtonFunction callback, AnyTy
     m_doublePressCallbackParameter = callbackParameter;
 }
 
-// Set long press callback
 void ButtonModule::setLongPressCallback(CallbackButtonFunction callback, AnyType *callbackParameter)
 {
     Log_Verbose(m_logger, "On long press callback set");
@@ -103,13 +96,12 @@ void ButtonModule::setLongPressCallback(CallbackButtonFunction callback, AnyType
     m_longPressCallbackParameter = callbackParameter;
 }
 
-// Check if the button is pressed
 bool const ButtonModule::isPressed() const
 {
-    return (digitalRead(m_pin) == m_onRaising);
+    int shouldbe = m_onRaising ? HIGH : LOW;
+    return (digitalRead(m_pin) == shouldbe);
 }
 
-// Reset button state
 void ButtonModule::resetButtonState()
 {
     m_wasPressed = false;
@@ -119,7 +111,6 @@ void ButtonModule::resetButtonState()
     m_countPress = 0;
 }
 
-// Handle button press
 void ButtonModule::handleButtonPress()
 {
     if (!m_wasPressed)
@@ -139,7 +130,6 @@ void ButtonModule::handleButtonPress()
     }
 }
 
-// Handle button release
 void ButtonModule::handleButtonRelease()
 {
     if (m_wasPressed)
@@ -162,7 +152,6 @@ void ButtonModule::handleButtonRelease()
     }
 }
 
-// Handle single or double press
 void ButtonModule::handleSingleOrDoublePress()
 {
     if (m_singlePressCallback && (!m_doublePressCallback || millis() - m_lastReleaseTime > m_timeBetweenDoublePress))
@@ -179,7 +168,6 @@ void ButtonModule::handleSingleOrDoublePress()
     }
 }
 
-// Button trigger task
 void ButtonModule::buttonTriggerTask()
 {
     resetButtonState();
