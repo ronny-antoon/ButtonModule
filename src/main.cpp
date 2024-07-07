@@ -15,18 +15,6 @@ void singlePressCallback(void *parameter)
     Serial.printf("High watermark: %u\n", uxTaskGetStackHighWaterMark(NULL));
 }
 
-void doublePressCallback(void *parameter)
-{
-    int *value = (int *)parameter;
-    Serial.printf("Double Press Callback, parameter: %d\n", *value);
-}
-
-void longPressCallback(void *parameter)
-{
-    int *value = (int *)parameter;
-    Serial.printf("Long Press Callback, parameter: %d\n", *value);
-}
-
 void setup()
 {
     Serial.begin(115200);
@@ -39,17 +27,12 @@ void setup()
     logger->setLogLevel(MultiPrinterLoggerInterface::LogLevel::VERBOSE);
     logger->setColorEnabled(true);
 
-    // ButtonModule *buttonModule = new ButtonModule(5, logger, true);
+    ButtonModule *buttonModule = new ButtonModule(5, true, logger);
 
     int *parameter = new int(10);
-    // buttonModule->setSinglePressCallback(singlePressCallback, parameter);
-    // buttonModule->setDoublePressCallback(doublePressCallback, parameter);
-    // buttonModule->setLongPressCallback(longPressCallback, parameter);
+    buttonModule->onSinglePress(singlePressCallback, parameter);
 
-    ButtonModule *buttonModule1 = new ButtonModule(23, logger, false);
-    buttonModule1->setSinglePressCallback(singlePressCallback, parameter);
-    buttonModule1->setDoublePressCallback(doublePressCallback, parameter);
-    buttonModule1->setLongPressCallback(longPressCallback, parameter);
+    buttonModule->startListening(2000, nullptr, 30, 90, 1000, 500);
 
     Serial.printf("Minimum heap that has ever been available: %u\n", esp_get_minimum_free_heap_size());
     Serial.printf("After Initialize, free heap: %u\n", esp_get_free_heap_size());

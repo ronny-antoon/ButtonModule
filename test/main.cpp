@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include "isPressed_test.hpp"
 #include "callback_test.hpp"
 // #include "startListening_test.hpp"
 // #include "stopListening_test.hpp"
