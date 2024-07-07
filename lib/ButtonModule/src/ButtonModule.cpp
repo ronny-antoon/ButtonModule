@@ -1,14 +1,193 @@
+#include <Arduino.h>
 #include "ButtonModule.hpp"
 
+// Constructor
+ButtonModule::ButtonModule(
+    uint8_t const pin, MultiPrinterLoggerInterface *const logger,
+    bool const isActiveHigh,
+    uint16_t const longPressDurationMs,
+    uint16_t const debounceTimeMs,
+    uint16_t const usStackDepth,
+    uint16_t const timeBetweenDoublePress)
+    : m_pin(pin),
+      m_logger(logger),
+      m_onRaising(isActiveHigh),
+      m_longPressTime(longPressDurationMs),
+      m_debounceTime(debounceTimeMs),
+      m_checkInterval(30),
+      m_timeBetweenDoublePress(timeBetweenDoublePress),
+      m_buttonTriggerTaskHandle(nullptr),
+      m_wasPressed(false),
+      m_lastPressTime(0),
+      m_lastReleaseTime(0),
+      m_triggerFired(false),
+      m_countPress(0)
+{
+    Log_Debug(m_logger, "Created with parameters: pin = %d, onRaising = %s", pin, isActiveHigh ? "HIGH" : "LOW");
+    pinMode(m_pin, INPUT);
+
+    startListening(usStackDepth, "buttonTriggerTask", 30, debounceTimeMs, longPressDurationMs, timeBetweenDoublePress);
+}
+
+// Destructor
+ButtonModule::~ButtonModule()
+{
+    Log_Debug(m_logger, "Destroyed");
+    stopListening();
+}
+
+// Start listening for button triggers
+void ButtonModule::startListening(
+    uint16_t usStackDepth, char const *taskName, uint8_t checkInterval,
+    uint8_t debounceTime, uint16_t longPressTime,
+    uint16_t timeBetweenDoublePress)
+{
+    Log_Verbose(m_logger, "Button listening started with parameters: usStackDepth=%d, checkInterval=%d, debounceTime=%d, longPressTime=%d, timeBetweenDoublePress=%d",
+                usStackDepth, checkInterval, debounceTime, longPressTime, timeBetweenDoublePress);
+
+    m_checkInterval = checkInterval;
+    m_debounceTime = debounceTime;
+    m_longPressTime = longPressTime;
+    m_timeBetweenDoublePress = timeBetweenDoublePress;
+
+    bool nameing = true;
+    if (taskName == nullptr || strlen(taskName) < 2 || strcmp(taskName, "") == 0 || strlen(taskName) > 50)
+    {
+        nameing = false;
+    }
+
+    stopListening();
+
+    xTASK_CREATE_TRACKED(
+        [](void *thisPointer)
+        { static_cast<ButtonModule *>(thisPointer)->buttonTriggerTask(); },
+        nameing ? taskName : "buttonTriggerTask",
+        usStackDepth,
+        this,
+        1,
+        &m_buttonTriggerTaskHandle);
+}
+
+// Stop listening for button triggers
+void ButtonModule::stopListening()
+{
+    if (m_buttonTriggerTaskHandle != nullptr)
+    {
+        Log_Verbose(m_logger, "Button listening stopped");
+        xTASK_DELETE_TRACKED(&m_buttonTriggerTaskHandle);
+    }
+    m_buttonTriggerTaskHandle = nullptr;
+}
+
+// Set single press callback
+void ButtonModule::setSinglePressCallback(CallbackButtonFunction callback, AnyType *callbackParameter)
+{
+    Log_Verbose(m_logger, "On single press callback set");
+    m_singlePressCallback = callback;
+    m_singlePressCallbackParameter = callbackParameter;
+}
+
+// Set double press callback
+void ButtonModule::setDoublePressCallback(CallbackButtonFunction callback, AnyType *callbackParameter)
+{
+    Log_Verbose(m_logger, "On double press callback set");
+    m_doublePressCallback = callback;
+    m_doublePressCallbackParameter = callbackParameter;
+}
+
+// Set long press callback
+void ButtonModule::setLongPressCallback(CallbackButtonFunction callback, AnyType *callbackParameter)
+{
+    Log_Verbose(m_logger, "On long press callback set");
+    m_longPressCallback = callback;
+    m_longPressCallbackParameter = callbackParameter;
+}
+
+// Check if the button is pressed
+bool const ButtonModule::isPressed() const
+{
+    return (digitalRead(m_pin) == m_onRaising);
+}
+
+// Reset button state
+void ButtonModule::resetButtonState()
+{
+    m_wasPressed = false;
+    m_lastPressTime = 0;
+    m_lastReleaseTime = 0;
+    m_triggerFired = false;
+    m_countPress = 0;
+}
+
+// Handle button press
+void ButtonModule::handleButtonPress()
+{
+    if (!m_wasPressed)
+    {
+        m_lastPressTime = millis();
+        m_lastReleaseTime = 0;
+        m_wasPressed = true;
+    }
+    else
+    {
+        if (m_longPressCallback && m_countPress == 0 && millis() - m_lastPressTime >= m_longPressTime)
+        {
+            Log_Verbose(m_logger, "Long press detected");
+            m_longPressCallback(m_longPressCallbackParameter);
+            m_triggerFired = true;
+        }
+    }
+}
+
+// Handle button release
+void ButtonModule::handleButtonRelease()
+{
+    if (m_wasPressed)
+    {
+        m_lastReleaseTime = millis();
+        m_countPress++;
+        m_wasPressed = false;
+    }
+
+    if (m_countPress > 0)
+    {
+        if (m_lastPressTime - m_lastReleaseTime <= m_debounceTime)
+        {
+            resetButtonState();
+        }
+        else
+        {
+            handleSingleOrDoublePress();
+        }
+    }
+}
+
+// Handle single or double press
+void ButtonModule::handleSingleOrDoublePress()
+{
+    if (m_singlePressCallback && (!m_doublePressCallback || millis() - m_lastReleaseTime > m_timeBetweenDoublePress))
+    {
+        Log_Verbose(m_logger, "Single press detected");
+        m_singlePressCallback(m_singlePressCallbackParameter);
+        m_triggerFired = true;
+    }
+    else if (m_doublePressCallback && m_countPress >= 2)
+    {
+        Log_Verbose(m_logger, "Double press detected");
+        m_doublePressCallback(m_doublePressCallbackParameter);
+        m_triggerFired = true;
+    }
+}
+
+// Button trigger task
 void ButtonModule::buttonTriggerTask()
 {
     resetButtonState();
 
     while (true)
     {
-        if (triggerFired)
+        if (m_triggerFired)
         {
-            // Wait until the button is released before resetting variables
             if (!isPressed())
                 resetButtonState();
         }
@@ -19,183 +198,6 @@ void ButtonModule::buttonTriggerTask()
             else
                 handleButtonRelease();
         }
-        // Wait for the next iteration
-        vTaskDelay(_checkInterval / portTICK_PERIOD_MS);
+        vTaskDelay(m_checkInterval / portTICK_PERIOD_MS);
     }
-}
-
-void ButtonModule::resetButtonState()
-{
-    wasPressed = false;
-    lastPressTime = 0;
-    lastReleaseTime = 0;
-    triggerFired = false;
-    countPress = 0;
-}
-
-void ButtonModule::handleButtonPress()
-{
-    if (!wasPressed)
-    {
-        // First time the button is pressed
-        lastPressTime = millis();
-        lastReleaseTime = 0;
-        wasPressed = true;
-    }
-    else
-    {
-        // Button pressed again, check for long press and not a double press
-        if (_longPressCallback && countPress == 0 && millis() - lastPressTime >= _longPressTime)
-        {
-            Log_Verbose(_logger, "Long press detected");
-            _longPressCallback(_longPressCallbackParameter);
-            triggerFired = true;
-        }
-    }
-}
-
-void ButtonModule::handleButtonRelease()
-{
-    if (wasPressed)
-    {
-        // Button was released
-        lastReleaseTime = millis();
-        countPress++;
-        wasPressed = false;
-    }
-
-    if (countPress > 0)
-    {
-        // Check if the button is released within the debounce time
-        if (lastPressTime - lastReleaseTime <= _debounceTime)
-        {
-            // Ignore short button release (debounce)
-            resetButtonState();
-        }
-        else
-        {
-            // Check for single or double press
-            handleSingleOrDoublePress();
-        }
-    }
-}
-
-void ButtonModule::handleSingleOrDoublePress()
-{
-    if (_singlePressCallback && (!_doublePressCallback || millis() - lastReleaseTime > _timeBetweenDoublePress))
-    {
-        Log_Verbose(_logger, "Single press detected");
-        _singlePressCallback(_singlePressCallbackParameter);
-        triggerFired = true;
-    }
-    else if (_doublePressCallback && countPress >= 2)
-    {
-        Log_Verbose(_logger, "Double press detected");
-        _doublePressCallback(_doublePressCallbackParameter);
-        triggerFired = true;
-    }
-}
-
-ButtonModule::ButtonModule(
-    uint8_t const pin, bool const onRaising,
-    MultiPrinterLoggerInterface *const logger)
-    : _pin(pin),
-      _onRaising(onRaising),
-      _logger(logger)
-{
-    Log_Debug(_logger, "Created with parameters: pin = %d, onRaising = %s", pin, onRaising ? "HIGH" : "LOW");
-    // Set pin mode to input
-    pinMode(_pin, INPUT);
-}
-
-ButtonModule::~ButtonModule()
-{
-    Log_Debug(_logger, "Destroyed");
-    // Clean up and stop listening when the instance is destroyed
-    stopListening();
-}
-
-bool const ButtonModule::isPressed() const
-{
-    // Check if the button is pressed based on the configured edge
-    return (digitalRead(_pin) == _onRaising);
-}
-
-void ButtonModule::onSinglePress(void (*callback)(void *), void *_pParameter)
-{
-    Log_Verbose(_logger, "On single press callback set");
-    // Set the callback function and its parameter for a single press event
-    _singlePressCallback = callback;
-    _singlePressCallbackParameter = _pParameter;
-}
-
-void ButtonModule::onDoublePress(void (*callback)(void *), void *_pParameter)
-{
-    Log_Verbose(_logger, "On double press callback set");
-    // Set the callback function and its parameter for a double press event
-    _doublePressCallback = callback;
-    _doublePressCallbackParameter = _pParameter;
-}
-
-void ButtonModule::onLongPress(void (*callback)(void *), void *_pParameter)
-{
-    Log_Verbose(_logger, "On long press callback set");
-    // Set the callback function and its parameter for a long press event
-    _longPressCallback = callback;
-    _longPressCallbackParameter = _pParameter;
-}
-
-void ButtonModule::startListening(
-    uint16_t usStackDepth, char const *taskName, uint8_t checkInterval,
-    uint8_t debounceTime, uint16_t longPressTime,
-    uint16_t timeBetweenDoublePress)
-{
-    Log_Verbose(_logger, "Button listening started with parameters: usStackDepth=%d,  checkInterval=%d, debounceTime=%d, longPressTime=%d, timeBetweenDoublePress=%d",
-                usStackDepth, checkInterval, debounceTime, longPressTime, timeBetweenDoublePress);
-    // Set configuration parameters for button trigger detection
-    _checkInterval = checkInterval;
-    _debounceTime = debounceTime;
-    _longPressTime = longPressTime;
-    _timeBetweenDoublePress = timeBetweenDoublePress;
-
-    bool nameing = true;
-    if (taskName == nullptr || strlen(taskName) < 2 || strcmp(taskName, "") == 0 || strlen(taskName) > 50)
-    {
-        // Use default task name
-        nameing = false;
-        // taskName = "buttonTriggerTask";
-    }
-
-    // Stop any existing listening task
-    stopListening();
-
-    // Start listening task
-    xTASK_CREATE_TRACKED(
-        [](void *thisPointer)
-        { static_cast<ButtonModule *>(thisPointer)->buttonTriggerTask(); },
-        nameing ? taskName : "buttonTriggerTask",
-        usStackDepth,
-        this,
-        1,
-        &_buttonTriggerTaskHandle);
-    // xTaskCreate(
-    //     [](void *thisPointer)
-    //     { static_cast<ButtonModule *>(thisPointer)->buttonTriggerTask(); },
-    //     "buttonTriggerTask",
-    //     usStackDepth,
-    //     this,
-    //     1,
-    //     &_buttonTriggerTaskHandle);
-}
-
-void ButtonModule::stopListening()
-{
-    // Stop the listening task and clean up resources
-    if (_buttonTriggerTaskHandle != nullptr)
-    {
-        Log_Verbose(_logger, "Button listening stopped");
-        xTASK_DELETE_TRACKED(&_buttonTriggerTaskHandle);
-        // vTaskDelete(_buttonTriggerTaskHandle);
-    }
-    _buttonTriggerTaskHandle = nullptr;
 }

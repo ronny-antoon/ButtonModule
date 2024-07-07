@@ -1,10 +1,8 @@
-#ifndef CALLBACK_TEST_HPP
-#define CALLBACK_TEST_HPP
+#pragma once
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <Arduino.h>
-
 #include "ButtonModule.hpp"
 
 void myCallback(void *parameter)
@@ -44,9 +42,8 @@ protected:
 
     void SetUp() override
     {
-
-        buttonModule1 = new ButtonModule(buttonPin1, onRaising1);
-        buttonModule2 = new ButtonModule(buttonPin2, onRaising2);
+        buttonModule1 = new ButtonModule(buttonPin1, nullptr, onRaising1);
+        buttonModule2 = new ButtonModule(buttonPin2, nullptr, onRaising2);
         counterCheck = new int(0);
         mockMyClass = new MockMyClass();
 
@@ -65,9 +62,7 @@ protected:
 
 TEST_F(CallbackTest, OnSinglePressByFunction)
 {
-    buttonModule1->onSinglePress(myCallback,
-                                 counterCheck);
-    buttonModule1->startListening();
+    buttonModule1->setSinglePressCallback(myCallback, counterCheck);
     pinMode(buttonPin1, OUTPUT);
     digitalWrite(buttonPin1, onRaising1);
     delay(150);
@@ -75,9 +70,7 @@ TEST_F(CallbackTest, OnSinglePressByFunction)
     delay(150);
     EXPECT_EQ(*counterCheck, 1);
 
-    buttonModule2->onSinglePress(myCallback,
-                                 counterCheck);
-    buttonModule2->startListening();
+    buttonModule2->setSinglePressCallback(myCallback, counterCheck);
     pinMode(buttonPin2, OUTPUT);
     digitalWrite(buttonPin2, onRaising2);
     delay(150);
@@ -86,12 +79,10 @@ TEST_F(CallbackTest, OnSinglePressByFunction)
     EXPECT_EQ(*counterCheck, 2);
 }
 
-TEST_F(CallbackTest, OnSinglePressByLamda)
+TEST_F(CallbackTest, OnSinglePressByLambda)
 {
-    buttonModule1->onSinglePress([](void *parameter)
-                                 { ((int *)parameter)[0]++; },
-                                 counterCheck);
-    buttonModule1->startListening();
+    buttonModule1->setSinglePressCallback([](void *parameter)
+                                          { ((int *)parameter)[0]++; }, counterCheck);
     pinMode(buttonPin1, OUTPUT);
     digitalWrite(buttonPin1, onRaising1);
     delay(150);
@@ -99,10 +90,8 @@ TEST_F(CallbackTest, OnSinglePressByLamda)
     delay(150);
     EXPECT_EQ(*counterCheck, 1);
 
-    buttonModule2->onSinglePress([](void *parameter)
-                                 { ((int *)parameter)[0]++; },
-                                 counterCheck);
-    buttonModule2->startListening();
+    buttonModule2->setSinglePressCallback([](void *parameter)
+                                          { ((int *)parameter)[0]++; }, counterCheck);
     pinMode(buttonPin2, OUTPUT);
     digitalWrite(buttonPin2, onRaising2);
     delay(150);
@@ -111,26 +100,20 @@ TEST_F(CallbackTest, OnSinglePressByLamda)
     EXPECT_EQ(*counterCheck, 2);
 }
 
-TEST_F(CallbackTest, OnSinglePressByLamda_mock_callback)
+TEST_F(CallbackTest, OnSinglePressByLambda_mock_callback)
 {
-    buttonModule1->onSinglePress([](void *parameter)
-                                 { ((MockMyClass *)parameter)->myCallback(parameter); },
-                                 mockMyClass);
-    buttonModule1->startListening();
-    EXPECT_CALL(*mockMyClass, myCallback(mockMyClass))
-        .Times(1);
+    buttonModule1->setSinglePressCallback([](void *parameter)
+                                          { ((MockMyClass *)parameter)->myCallback(parameter); }, mockMyClass);
+    EXPECT_CALL(*mockMyClass, myCallback(mockMyClass)).Times(1);
     pinMode(buttonPin1, OUTPUT);
     digitalWrite(buttonPin1, onRaising1);
     delay(150);
     digitalWrite(buttonPin1, !onRaising1);
     delay(150);
 
-    buttonModule2->onSinglePress([](void *parameter)
-                                 { ((MockMyClass *)parameter)->myCallback(parameter); },
-                                 mockMyClass);
-    buttonModule2->startListening();
-    EXPECT_CALL(*mockMyClass, myCallback(mockMyClass))
-        .Times(1);
+    buttonModule2->setSinglePressCallback([](void *parameter)
+                                          { ((MockMyClass *)parameter)->myCallback(parameter); }, mockMyClass);
+    EXPECT_CALL(*mockMyClass, myCallback(mockMyClass)).Times(1);
     pinMode(buttonPin2, OUTPUT);
     digitalWrite(buttonPin2, onRaising2);
     delay(150);
@@ -140,9 +123,7 @@ TEST_F(CallbackTest, OnSinglePressByLamda_mock_callback)
 
 TEST_F(CallbackTest, OnDoublePressByFunction)
 {
-    buttonModule1->onDoublePress(myCallback,
-                                 counterCheck);
-    buttonModule1->startListening();
+    buttonModule1->setDoublePressCallback(myCallback, counterCheck);
     pinMode(buttonPin1, OUTPUT);
     digitalWrite(buttonPin1, onRaising1);
     delay(150);
@@ -154,9 +135,7 @@ TEST_F(CallbackTest, OnDoublePressByFunction)
     delay(150);
     EXPECT_EQ(*counterCheck, 1);
 
-    buttonModule2->onDoublePress(myCallback,
-                                 counterCheck);
-    buttonModule2->startListening();
+    buttonModule2->setDoublePressCallback(myCallback, counterCheck);
     pinMode(buttonPin2, OUTPUT);
     digitalWrite(buttonPin2, onRaising2);
     delay(150);
@@ -169,12 +148,10 @@ TEST_F(CallbackTest, OnDoublePressByFunction)
     EXPECT_EQ(*counterCheck, 2);
 }
 
-TEST_F(CallbackTest, OnDoublePressByLamda)
+TEST_F(CallbackTest, OnDoublePressByLambda)
 {
-    buttonModule1->onDoublePress([](void *parameter)
-                                 { ((int *)parameter)[0]++; },
-                                 counterCheck);
-    buttonModule1->startListening();
+    buttonModule1->setDoublePressCallback([](void *parameter)
+                                          { ((int *)parameter)[0]++; }, counterCheck);
     pinMode(buttonPin1, OUTPUT);
     digitalWrite(buttonPin1, onRaising1);
     delay(150);
@@ -186,10 +163,8 @@ TEST_F(CallbackTest, OnDoublePressByLamda)
     delay(150);
     EXPECT_EQ(*counterCheck, 1);
 
-    buttonModule2->onDoublePress([](void *parameter)
-                                 { ((int *)parameter)[0]++; },
-                                 counterCheck);
-    buttonModule2->startListening();
+    buttonModule2->setDoublePressCallback([](void *parameter)
+                                          { ((int *)parameter)[0]++; }, counterCheck);
     pinMode(buttonPin2, OUTPUT);
     digitalWrite(buttonPin2, onRaising2);
     delay(150);
@@ -202,14 +177,11 @@ TEST_F(CallbackTest, OnDoublePressByLamda)
     EXPECT_EQ(*counterCheck, 2);
 }
 
-TEST_F(CallbackTest, OnDoublePressByLamda_mock_callback)
+TEST_F(CallbackTest, OnDoublePressByLambda_mock_callback)
 {
-    buttonModule1->onDoublePress([](void *parameter)
-                                 { ((MockMyClass *)parameter)->myCallback(parameter); },
-                                 mockMyClass);
-    buttonModule1->startListening();
-    EXPECT_CALL(*mockMyClass, myCallback(mockMyClass))
-        .Times(1);
+    buttonModule1->setDoublePressCallback([](void *parameter)
+                                          { ((MockMyClass *)parameter)->myCallback(parameter); }, mockMyClass);
+    EXPECT_CALL(*mockMyClass, myCallback(mockMyClass)).Times(1);
     pinMode(buttonPin1, OUTPUT);
     digitalWrite(buttonPin1, onRaising1);
     delay(150);
@@ -220,12 +192,9 @@ TEST_F(CallbackTest, OnDoublePressByLamda_mock_callback)
     digitalWrite(buttonPin1, !onRaising1);
     delay(150);
 
-    buttonModule2->onDoublePress([](void *parameter)
-                                 { ((MockMyClass *)parameter)->myCallback(parameter); },
-                                 mockMyClass);
-    buttonModule2->startListening();
-    EXPECT_CALL(*mockMyClass, myCallback(mockMyClass))
-        .Times(1);
+    buttonModule2->setDoublePressCallback([](void *parameter)
+                                          { ((MockMyClass *)parameter)->myCallback(parameter); }, mockMyClass);
+    EXPECT_CALL(*mockMyClass, myCallback(mockMyClass)).Times(1);
     pinMode(buttonPin2, OUTPUT);
     digitalWrite(buttonPin2, onRaising2);
     delay(150);
@@ -239,9 +208,7 @@ TEST_F(CallbackTest, OnDoublePressByLamda_mock_callback)
 
 TEST_F(CallbackTest, OnLongPressByFunction)
 {
-    buttonModule1->onLongPress(myCallback,
-                               counterCheck);
-    buttonModule1->startListening();
+    buttonModule1->setLongPressCallback(myCallback, counterCheck);
     pinMode(buttonPin1, OUTPUT);
     digitalWrite(buttonPin1, onRaising1);
     delay(1500);
@@ -249,9 +216,7 @@ TEST_F(CallbackTest, OnLongPressByFunction)
     delay(150);
     EXPECT_EQ(*counterCheck, 1);
 
-    buttonModule2->onLongPress(myCallback,
-                               counterCheck);
-    buttonModule2->startListening();
+    buttonModule2->setLongPressCallback(myCallback, counterCheck);
     pinMode(buttonPin2, OUTPUT);
     digitalWrite(buttonPin2, onRaising2);
     delay(1500);
@@ -260,12 +225,10 @@ TEST_F(CallbackTest, OnLongPressByFunction)
     EXPECT_EQ(*counterCheck, 2);
 }
 
-TEST_F(CallbackTest, OnLongPressByLamda)
+TEST_F(CallbackTest, OnLongPressByLambda)
 {
-    buttonModule1->onLongPress([](void *parameter)
-                               { ((int *)parameter)[0]++; },
-                               counterCheck);
-    buttonModule1->startListening();
+    buttonModule1->setLongPressCallback([](void *parameter)
+                                        { ((int *)parameter)[0]++; }, counterCheck);
     pinMode(buttonPin1, OUTPUT);
     digitalWrite(buttonPin1, onRaising1);
     delay(1500);
@@ -273,10 +236,8 @@ TEST_F(CallbackTest, OnLongPressByLamda)
     delay(150);
     EXPECT_EQ(*counterCheck, 1);
 
-    buttonModule2->onLongPress([](void *parameter)
-                               { ((int *)parameter)[0]++; },
-                               counterCheck);
-    buttonModule2->startListening();
+    buttonModule2->setLongPressCallback([](void *parameter)
+                                        { ((int *)parameter)[0]++; }, counterCheck);
     pinMode(buttonPin2, OUTPUT);
     digitalWrite(buttonPin2, onRaising2);
     delay(1500);
@@ -285,30 +246,23 @@ TEST_F(CallbackTest, OnLongPressByLamda)
     EXPECT_EQ(*counterCheck, 2);
 }
 
-TEST_F(CallbackTest, OnLongPressByLamda_mock_callback)
+TEST_F(CallbackTest, OnLongPressByLambda_mock_callback)
 {
-    buttonModule1->onLongPress([](void *parameter)
-                               { ((MockMyClass *)parameter)->myCallback(parameter); },
-                               mockMyClass);
-    buttonModule1->startListening();
-    EXPECT_CALL(*mockMyClass, myCallback(mockMyClass))
-        .Times(1);
+    buttonModule1->setLongPressCallback([](void *parameter)
+                                        { ((MockMyClass *)parameter)->myCallback(parameter); }, mockMyClass);
+    EXPECT_CALL(*mockMyClass, myCallback(mockMyClass)).Times(1);
     pinMode(buttonPin1, OUTPUT);
     digitalWrite(buttonPin1, onRaising1);
     delay(1500);
     digitalWrite(buttonPin1, !onRaising1);
     delay(150);
 
-    buttonModule2->onLongPress([](void *parameter)
-                               { ((MockMyClass *)parameter)->myCallback(parameter); },
-                               mockMyClass);
-    buttonModule2->startListening();
-    EXPECT_CALL(*mockMyClass, myCallback(mockMyClass))
-        .Times(1);
+    buttonModule2->setLongPressCallback([](void *parameter)
+                                        { ((MockMyClass *)parameter)->myCallback(parameter); }, mockMyClass);
+    EXPECT_CALL(*mockMyClass, myCallback(mockMyClass)).Times(1);
     pinMode(buttonPin2, OUTPUT);
     digitalWrite(buttonPin2, onRaising2);
     delay(1500);
     digitalWrite(buttonPin2, !onRaising2);
     delay(150);
 }
-#endif // CALLBACK_TEST_HPP
