@@ -7,11 +7,11 @@
  * @author Ronny Antoon
  * @copyright MetaHouse LTD.
  */
+#include <MultiPrinterLoggerInterface.hpp> // MultiPrinterLoggerInterface
+#include <esp32-hal-gpio.h>                // pinMode, digitalRead
+#include <TaskTracker.hpp>
 
 #include "ButtonModuleInterface.hpp"
-
-#include <Arduino.h>
-#include <MultiPrinterLoggerInterface.hpp> // MultiPrinterLoggerInterface
 
 /**
  * @brief Implementation of the ButtonModule class.

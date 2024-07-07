@@ -1,9 +1,5 @@
 #include "ButtonModule.hpp"
 
-#include <Arduino.h>
-#include <TaskTracker.hpp>
-#include <MultiPrinterLoggerInterface.hpp>
-
 void ButtonModule::buttonTriggerTask()
 {
     resetButtonState();
